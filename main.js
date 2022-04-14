@@ -22,6 +22,7 @@ client.once('ready', function() {
 
 require('./tictactoe');
 require('./onlinestatuses');
+require('./economy');
 
 client.on('messageCreate', message => {
 
@@ -49,6 +50,8 @@ client.on('messageCreate', message => {
                 } catch(error) {
                     message.channel.send('```' + error.toString() + '```');
                 }
+            } else {
+                message.reply(':flushed:');
             }
             break;
         case ";rec":

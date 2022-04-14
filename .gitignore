@@ -3,3 +3,4 @@ node_modules/*
 statusdata/*
 bot.js
 namedictionary.txt
+economydata.json
