@@ -1,0 +1,22 @@
+{
+  "name": "discordbot",
+  "version": "1.0.0",
+  "description": "Discord bot that does stuff",
+  "main": "main.js",
+  "scripts": {
+    "test": "node main"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Khajiitos/DiscordBot.git"
+  },
+  "author": "Khajiitos",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Khajiitos/DiscordBot/issues"
+  },
+  "homepage": "https://github.com/Khajiitos/DiscordBot#readme",
+  "dependencies": {
+    "discord.js": "^13.6.0"
+  }
+}
