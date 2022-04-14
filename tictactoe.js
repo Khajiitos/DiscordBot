@@ -30,7 +30,7 @@ class TicTacToeGame {
         if (this.gameOver)
             return;
 
-        for (var i = 0; i < reactions.length; i++) {
+        for (let i = 0; i < reactions.length; i++) {
             if (reaction == reactions[i]) {
 
                 if (this.board[i] != 0)
@@ -40,10 +40,11 @@ class TicTacToeGame {
                 this.turn = false;
                 this.updateMessage();
                 if (!this.gameOver) {
+                    // TODO: this might not be very secure
                     var thisgame = this;
                     setTimeout(function() {
 
-                        var selection = thisgame.findRandomEmptyField();
+                        let selection = thisgame.findRandomEmptyField();
                         if (selection == -1)
                             return;
 
@@ -79,6 +80,7 @@ class TicTacToeGame {
 
     createMessage() {
         if (this.channel instanceof Discord.Channel && this.user instanceof Discord.User && this.message instanceof Discord.Message) {
+            // TODO: this might not be very secure
             var thisgame = this;
 
             if (this.turn == false) {
@@ -96,7 +98,7 @@ class TicTacToeGame {
 
             this.updateMessage();
 
-            for (var i = 0; i < reactions.length; i++){
+            for (let i = 0; i < reactions.length; i++){
                 this.message.react(reactions[i]).catch(error => {
                     console.log(error);
                     console.log('Failed to react to a message, game cancelled.');
@@ -110,12 +112,12 @@ class TicTacToeGame {
     }
 
     findRandomEmptyField() {
-        var fields = [];
-        for (var i = 0; i < 9; i++){
+        let fields = [];
+        for (let i = 0; i < 9; i++){
             if (this.board[i] == 0)
                 fields.push(i);
         }
-        var len = fields.length;
+        let len = fields.length;
 
         if (len == 0)
             return -1;
