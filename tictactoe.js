@@ -1,12 +1,14 @@
 const Discord = require('discord.js');
 const client = require('./main');
 
+let games = [];
+
+const reactions = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣'];
+const embedFooterData = {text: 'TicTacToe bot by Khajiitos#5835', iconURL: 'https://cdn.discordapp.com/avatars/408330424562089984/9a944c01c8b129b05d74b7e4ec72c901.webp'};
+
 function randomInteger(min, max) {
     return min + Math.floor(Math.random() * (max - min));
 }
-
-let games = [];
-const reactions = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣'];
 
 class TicTacToeGame {
     user = null;
@@ -82,7 +84,7 @@ class TicTacToeGame {
             if (this.turn == false) {
                 setTimeout(function() {
 
-                    var selection = thisgame.findRandomEmptyField();
+                    let selection = thisgame.findRandomEmptyField();
                     if (selection == -1)
                         return;
 
@@ -127,13 +129,12 @@ class TicTacToeGame {
 
         if (this.message instanceof Discord.Message){
 
-            var winnercheck = this.winnerCheck();
+            let winnercheck = this.winnerCheck();
 
             if (winnercheck != 0)
                 this.gameOver = true;
 
-            let embedAuthorData = {name: this.user.username, url: this.user.avatarURL()};
-            let embedFooterData = {text: 'TicTacToe bot by Khajiitos#5835'};
+            let embedAuthorData = {name: this.user.username, iconURL: this.user.avatarURL()};
 
             if (this.gameOver) {
                 switch(winnercheck){
@@ -180,7 +181,7 @@ class TicTacToeGame {
                 .setAuthor(embedAuthorData)
                 .setFooter(embedFooterData);
     
-                this.message.edit(messageEmbed);
+                this.message.edit({embeds: [messageEmbed]});
             }
         } else {
             console.log('TicTacToeGame.message is not an instance of Discord.Message');
@@ -239,23 +240,23 @@ client.on('messageCreate', (message) => {
         return;
     }
 
-    function helpMessage() {
+    if (dividedMessage.length === 1 || dividedMessage[1] === 'help') {
+        let embedAuthorData = {name: message.author.username, iconURL: message.author.avatarURL()};
+
         const messageEmbed = new Discord.MessageEmbed()
         .setColor('#00FFFF')
         .setTitle('TicTacToe - Help')
+        .setFooter(embedFooterData)
+        .setAuthor(embedAuthorData)
         .setDescription(
             `
-            **!tictactoe help** - shows this page\n
-            **!tictactoe start** - starts a new Tic Tac Toe game\n
-            **!tictactoe check** - checks if you're in a Tic Tac Toe game\n
-            **!tictactoe quit** - quits your current TicTacToe game\n
-            **!tictactoe update** - updates the board if any issues have occured\n
+            **!tictactoe help** - shows this page
+            **!tictactoe start** - starts a new Tic Tac Toe game
+            **!tictactoe check** - checks if you're in a Tic Tac Toe game
+            **!tictactoe quit** - quits your current TicTacToe game
+            **!tictactoe update** - updates the board if any issues have occured
             `);
         message.channel.send({embeds: [messageEmbed]});
-    }
-
-    if (dividedMessage.length === 1 || dividedMessage[1] === 'help') {
-        helpMessage();
         return;
     }
 
@@ -291,6 +292,8 @@ client.on('messageCreate', (message) => {
         case 'update':
             if (games[message.author] != undefined) {
                 games[message.author].updateMessage();
+            } else {
+                message.reply('You don\'t seem to be in a Tic Tac Toe game.');
             }
             break;
         default:
