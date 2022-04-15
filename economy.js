@@ -21,6 +21,23 @@ const defaultUserEconomyData = {
 };
 
 let economyData = { };
+let jobs = [];
+
+function randomInteger(min, max) {
+    return min + Math.floor(Math.random() * (max - min));
+}
+
+function readJobsFromFile() {
+    fs.readFile('jobs.json', (errno, data) => {
+        if (errno) return console.error(errno);
+        try {
+            jobs = JSON.parse(data.toString());
+        } catch(e) {
+            console.error('Failed to parse JSON from jobs.json.');
+            console.error(e);
+        }
+    });
+}
 
 function validateAllFieldsPresentInEconomyData() {
     let totalFieldsMissing = 0;
@@ -37,10 +54,6 @@ function validateAllFieldsPresentInEconomyData() {
     }
 }
 
-function randomInteger(min, max) {
-    return min + Math.floor(Math.random() * (max - min));
-}
-
 function createEconomyEntryForUserID(userID) {
     if (userID === undefined) {
         console.trace('Did you forget to add the userID to the arguments?');
@@ -51,6 +64,67 @@ function createEconomyEntryForUserID(userID) {
 
 function hasEconomyEntry(userID) {
     return !!(economyData[userID]);
+}
+
+function generateAvailableJobs(userID) {
+    if (!hasEconomyEntry(userID)) {
+        createEconomyEntryForUserID(userID);
+    }
+
+    economyData[userID].availableJobs = [];
+
+    const totalWorkExperience = getTotalJobExperience(userID);
+    let jobAmount = 0;
+
+    /*
+    The function can generate from 0 to 3 random available jobs.
+    There is an 80% chance that at least 1 job will be generated.
+    There is an 50% chance that at least 2 jobs will be generated.
+    There is an 25% chance that at least 3 jobs will be generated.
+    TODO: maybe increase the chance of getting more jobs based on work experience?
+    */
+
+    const randJobAmount = randomInteger(1, 100);
+    console.log(randJobAmount);
+    if (randJobAmount <= 25) jobAmount = 3;
+    else if (randJobAmount <= 50) jobAmount = 2;
+    else if (randJobAmount <= 80) jobAmount = 1;
+
+    if (jobAmount === 0) {
+        return;
+    }
+
+    /*
+    Each job specified in jobs.json has a "rarity" attribute.
+    For now, it goes from 0 to 3.
+    */
+    const rarityTickets = [10, 8, 5, 3];
+
+    let jobsPossible = [];
+    let totalTickets = 0;
+    for (let job of jobs) {
+        if (totalWorkExperience >= job.minRequiredWorkExperience) {
+            jobsPossible.push(job);
+            totalTickets += rarityTickets[job.rarity];
+        }
+    }
+
+    for (let i = 0; i < jobAmount; i++) {
+        const randTicket = randomInteger(1, totalTickets);
+        let ticketsPassed = 1;
+        for (let job of jobsPossible) {
+            // check if randTicket in range of ticketsPassed and ticketsPassed + rarityTickets[job.rarity]
+            if (randTicket >= ticketsPassed && randTicket <= ticketsPassed + rarityTickets[job.rarity]) {
+                economyData[userID].availableJobs.push({
+                    name: job.name,
+                    chanceOfGettingFired: job.chanceOfGettingFired,
+                    baseSalary: randomInteger(job.minBaseSalary, job.maxBaseSalary),
+                    cooldown: randomInteger(job.minCooldown, job.maxCooldown)
+                });
+            }
+            ticketsPassed += rarityTickets[job.rarity] + 1;
+        }
+    }
 }
 
 function getBalanceFor(userID) {
@@ -107,6 +181,13 @@ function getLastJobRefresh(userID) {
         createEconomyEntryForUserID(userID);
     }
     return economyData[userID].lastJobRefresh;
+}
+
+function setLastJobRefresh(userID, jobRefresh) {
+    if (!hasEconomyEntry(userID)) {
+        createEconomyEntryForUserID(userID);
+    }
+    economyData[userID].lastJobRefresh = jobRefresh;
 }
 
 function getJobExperiences(userID) {
@@ -198,6 +279,7 @@ function writeEconomyDataToFile(exitProcessAfterwards = false) {
     }
 }
 
+readJobsFromFile();
 readEconomyDataFromFile();
 setInterval(writeEconomyDataToFile, 60000);
 
@@ -237,8 +319,7 @@ client.on('messageCreate', (message) => {
                 .setAuthor(embedAuthorData)
                 .setDescription(
                     `
-                    hi
-                    i think your balance is ${getBalanceFor(userID)}
+                    this will be a help page i think
                     `);
                 message.channel.send({embeds: [messageEmbed]});
             }
@@ -253,7 +334,7 @@ client.on('messageCreate', (message) => {
             .setAuthor(embedAuthorData)
             .setDescription(
                 `
-                Your balance: ${getBalanceFor(userID)}
+                Your balance: ${getBalanceFor(userID)} :coin:
                 `);
             message.channel.send({embeds: [messageEmbed]});
             break;
@@ -267,7 +348,7 @@ client.on('messageCreate', (message) => {
                 .setDescription(
                     `
                     **Job name:** ${getJob(userID).name}
-                    **Salary:** ${getJob(userID).baseSalary}
+                    **Salary:** ${getJob(userID).baseSalary} :coin:
                     **Chance of getting fired after work:** ${getJob(userID).chanceOfGettingFired}%
                     **You can work every:** ${getJob(userID).cooldown}s
                     `);
@@ -326,6 +407,34 @@ client.on('messageCreate', (message) => {
                     You can refresh this page using the **!refreshjobs** command!
                     ${(Date.now() - getLastJobRefresh(userID) > 600000) ? 'You can use it every 10 minutes!' : 'You can use it every 10 minutes, you used it recently so you have to wait!'}
                     `);
+                message.channel.send({embeds: [messageEmbed]});
+            }
+            break;
+        case '!refreshjobs':
+            if (Date.now() - getLastJobRefresh(userID) > 600000) {
+                setLastJobRefresh(userID, Date.now());
+                generateAvailableJobs(userID);
+                const messageEmbed = new Discord.MessageEmbed()
+                .setColor('#00FFFF')
+                .setFooter(embedFooterData)
+                .setAuthor(embedAuthorData)
+                .setTitle('Job list refresh')
+                .setDescription(
+                `
+                Refreshed the job list!
+                Now, use the **!jobs** command to view the list!
+                `);
+                message.channel.send({embeds: [messageEmbed]});
+            } else {
+                const messageEmbed = new Discord.MessageEmbed()
+                .setColor('#00FFFF')
+                .setFooter(embedFooterData)
+                .setAuthor(embedAuthorData)
+                .setTitle('Job list refresh')
+                .setDescription(
+                `
+                You used this command recently so you have to wait!
+                `);
                 message.channel.send({embeds: [messageEmbed]});
             }
             break;
@@ -420,6 +529,7 @@ client.on('messageCreate', (message) => {
 
                     setJob(userID, availableJobs[dividedMessage[1]]);
                     setLastWorked(userID, 0);
+                    economyData[userID].availableJobs.splice(dividedMessage[1], 1);
 
                     const messageEmbed = new Discord.MessageEmbed()
                     .setColor('#00FFFF')
