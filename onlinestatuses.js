@@ -62,7 +62,6 @@ function updateOnlineStatuses() {
         let buffer = new Buffer.allocUnsafe(5);
         buffer.writeUInt32BE(Math.floor(Date.now() / 1000));
         buffer.write(user.presenceChar, 4);
-        console.log(buffer);
         fs.appendFile(`statusdata/${user.id}`, buffer, ()=>{});
         nameDictionaryString += user.name + ':' + user.id + '\n';
     });
