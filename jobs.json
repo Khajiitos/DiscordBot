@@ -1,0 +1,62 @@
+[
+    {
+        "name": "Janitor",
+        "minBaseSalary": 5,
+        "maxBaseSalary": 7,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 0,
+        "rarity": 0
+    },
+    {
+        "name": "Bartender",
+        "minBaseSalary": 6,
+        "maxBaseSalary": 8,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 0,
+        "rarity": 0
+    },
+    {
+        "name": "Cashier",
+        "minBaseSalary": 6,
+        "maxBaseSalary": 8,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 0,
+        "rarity": 0
+    },
+    {
+        "name": "Fast-food worker",
+        "minBaseSalary": 6,
+        "maxBaseSalary": 8,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 0,
+        "rarity": 0
+    },
+    {
+        "name": "Hotel clerk",
+        "minBaseSalary": 8,
+        "maxBaseSalary": 10,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 5,
+        "rarity": 1
+    },
+    {
+        "name": "Waiter",
+        "minBaseSalary": 7,
+        "maxBaseSalary": 8,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 0,
+        "rarity": 0
+    }
+]
