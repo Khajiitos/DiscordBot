@@ -141,7 +141,7 @@ function addJobExperienceIn(userID, jobName, jobExperience) {
     if (!hasEconomyEntry(userID)) {
         createEconomyEntryForUserID(userID);
     }
-    if (typeof economyData[userID].jobExperiences[jobName] !== 'undefined'){
+    if (typeof economyData[userID].jobExperiences[jobName] !== 'undefined') {
         economyData[userID].jobExperiences[jobName] += jobExperience;
     } else {
         economyData[userID].jobExperiences[jobName] = jobExperience;
