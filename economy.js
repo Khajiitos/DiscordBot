@@ -85,7 +85,7 @@ function generateAvailableJobs(userID) {
     */
 
     const randJobAmount = randomInteger(1, 100);
-    console.log(randJobAmount);
+    
     if (randJobAmount <= 25) jobAmount = 3;
     else if (randJobAmount <= 50) jobAmount = 2;
     else if (randJobAmount <= 80) jobAmount = 1;
@@ -478,7 +478,6 @@ client.on('messageCreate', (message) => {
                     How unfortunate!
                     `;
                     setJob(userID, null);
-                    setLastWorked(userID, 0);
                 } else {
                     description += 
                     `
@@ -528,7 +527,6 @@ client.on('messageCreate', (message) => {
                     }
 
                     setJob(userID, availableJobs[dividedMessage[1]]);
-                    setLastWorked(userID, 0);
                     economyData[userID].availableJobs.splice(dividedMessage[1], 1);
 
                     const messageEmbed = new Discord.MessageEmbed()
