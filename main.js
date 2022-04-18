@@ -1,23 +1,27 @@
 const fs = require('fs');
 const Discord = require('discord.js');
+const Rest = require('@discordjs/rest');
+const DiscordApiTypes = require('discord-api-types/v9');
 
 const intents = new Discord.Intents([
-    //Discord.Intents.NON_PRIVILEGED, // include all non-privileged intents, would be better to specify which ones you actually need
     "GUILDS",
     "GUILD_PRESENCES",
     "GUILD_MESSAGES",
     "GUILD_MESSAGE_REACTIONS"
 ]);
 
-//const client = new Discord.Client({ ws: { intents } });
 const client = new Discord.Client({intents: intents});
+const slashCommandsList = [];
 
-module.exports = client;
+module.exports = {client, slashCommandsList};
 
-client.once('ready', function() {
-    console.log('Logged in!');
-    console.log('ready');
-    console.log('Status: ' + client.user.presence.status);
+client.once('ready', () => {
+    console.log(`Logged in as ${client.user.username}#${client.user.discriminator}!`);
+
+	rest.put(
+		DiscordApiTypes.Routes.applicationCommands(client.user.id),
+		{ body: slashCommandsList },
+	);
 });
 
 require('./tictactoe');
@@ -61,4 +65,6 @@ client.on('messageCreate', message => {
 });
 
 let token = fs.readFileSync('token.txt').toString();
+const rest = new Rest.REST({ version: '9' }).setToken(token);
+
 client.login(token);

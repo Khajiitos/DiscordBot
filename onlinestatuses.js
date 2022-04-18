@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const client = require('./main');
+const { client } = require('./main');
 const fs = require('fs');
 
 let timeout = null;

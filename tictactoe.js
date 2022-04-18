@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
-const client = require('./main');
+const Builders = require('@discordjs/builders');
+const { client, slashCommandsList } = require('./main');
 
 let games = [];
 
@@ -322,19 +323,30 @@ client.on('messageReactionAdd', (reaction, user) => {
     reaction.users.remove(user);
 });
 
-client.on('messageDelete', message => {
-
-    if (message.author != client.user)
-        return;
-
-    for (const [user, game] of Object.entries(games)) {
-        
-        if (game == null || game == undefined)
-            continue;
-
-        if (game.message == message) {
-            games[user] = undefined;
-            console.log('A game was deleted because the message was removed.');
-        }
-    }
+client.on('interactionCreate', interaction => {
+    
 });
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('tictactoe_start')
+    .setDescription('Starts a new TicTacToe game')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('tictactoe_check')
+    .setDescription('Checks if you\'re in a TicTacToe game')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('tictactoe_quit')
+    .setDescription('Quits your current TicTacToe game')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('tictactoe_update')
+    .setDescription('Updates your current TicTacToe game')
+);

@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
-const client = require('./main');
-const fs = require('fs')
+const Builders = require('@discordjs/builders');
+const { client, slashCommandsList } = require('./main');
+const fs = require('fs');
 
 const embedFooterData = {text: 'Economy bot by Khajiitos#5835', iconURL: 'https://cdn.discordapp.com/avatars/408330424562089984/9a944c01c8b129b05d74b7e4ec72c901.webp'};
 
@@ -289,17 +290,14 @@ process.on('SIGINT', () => {
 });
 
 client.on('messageCreate', (message) => {
+
     const dividedMessage = message.content.split(' ');
 
     if (message.author.bot || dividedMessage.length === 0) {
         return;
     }
 
-    const embedAuthorData = {name: message.author.username, iconURL: message.author.avatarURL()};
-    const userID = message.author.id;
-
     switch(dividedMessage[0]) {
-
         case '!debugdata':
             message.reply("```json\n" + JSON.stringify(economyData, null, 2) + "```");
             break;
@@ -307,27 +305,18 @@ client.on('messageCreate', (message) => {
             economyData = {};
             message.reply("```json\n" + JSON.stringify(economyData, null, 2) + "```");
             break;
+    }
+});
 
-        case '!economy':
-        case '!eco':
-            if (dividedMessage.length === 1 || dividedMessage[1] === 'help') {
-    
-                const messageEmbed = new Discord.MessageEmbed()
-                .setColor('#00FFFF')
-                .setTitle('Economy - Help')
-                .setFooter(embedFooterData)
-                .setAuthor(embedAuthorData)
-                .setDescription(
-                    `
-                    this will be a help page i think
-                    `);
-                message.channel.send({embeds: [messageEmbed]});
-            }
-            break;
-        case '!balance':
-        case '!money':
-        case '!bal':
-        
+client.on('interactionCreate', interaction => {
+    if (!interaction.isCommand()) return;
+
+    const embedAuthorData = {name: interaction.user.username, iconURL: interaction.user.avatarURL()};
+    const userID = interaction.user.id;
+
+    switch(interaction.commandName) {
+        case 'balance':
+        case 'money': {
             const messageEmbed = new Discord.MessageEmbed()
             .setColor('#00FFFF')
             .setFooter(embedFooterData)
@@ -336,9 +325,10 @@ client.on('messageCreate', (message) => {
                 `
                 Your balance: ${getBalanceFor(userID)} :coin:
                 `);
-            message.channel.send({embeds: [messageEmbed]});
+            interaction.reply({embeds: [messageEmbed]});
             break;
-        case '!job':
+        }
+        case 'job': {
             if (hasJob(userID)) {
                 const messageEmbed = new Discord.MessageEmbed()
                 .setColor('#00FFFF')
@@ -352,7 +342,7 @@ client.on('messageCreate', (message) => {
                     **Chance of getting fired after work:** ${getJob(userID).chanceOfGettingFired}%
                     **You can work every:** ${getJob(userID).cooldown}s
                     `);
-                    message.channel.send({embeds: [messageEmbed]});
+                interaction.reply({embeds: [messageEmbed]});
             } else {
                 const messageEmbed = new Discord.MessageEmbed()
                 .setColor('#00FFFF')
@@ -363,10 +353,11 @@ client.on('messageCreate', (message) => {
                     You don't have a job!
                     You can view your available jobs using the **!jobs** command!
                     `);
-                message.channel.send({embeds: [messageEmbed]});
+                interaction.reply({embeds: [messageEmbed]});
             }
             break;
-        case '!jobs':
+        }
+        case 'jobs': {
             let jobs = getAvailableJobs(userID);
             if (jobs.length !== 0) {
 
@@ -394,7 +385,7 @@ client.on('messageCreate', (message) => {
                 .setAuthor(embedAuthorData)
                 .setTitle('Job list')
                 .setDescription(description);
-                message.channel.send({embeds: [messageEmbed]});
+                interaction.reply({embeds: [messageEmbed]});
             } else {
                 const messageEmbed = new Discord.MessageEmbed()
                 .setColor('#00FFFF')
@@ -407,10 +398,11 @@ client.on('messageCreate', (message) => {
                     You can refresh this page using the **!refreshjobs** command!
                     ${(Date.now() - getLastJobRefresh(userID) > 600000) ? 'You can use it every 10 minutes!' : 'You can use it every 10 minutes, you used it recently so you have to wait!'}
                     `);
-                message.channel.send({embeds: [messageEmbed]});
+                interaction.reply({embeds: [messageEmbed]});
             }
             break;
-        case '!refreshjobs':
+        }
+        case 'refreshjobs': {
             if (Date.now() - getLastJobRefresh(userID) > 600000) {
                 setLastJobRefresh(userID, Date.now());
                 generateAvailableJobs(userID);
@@ -424,7 +416,7 @@ client.on('messageCreate', (message) => {
                 Refreshed the job list!
                 Now, use the **!jobs** command to view the list!
                 `);
-                message.channel.send({embeds: [messageEmbed]});
+                interaction.reply({embeds: [messageEmbed]});
             } else {
                 const messageEmbed = new Discord.MessageEmbed()
                 .setColor('#00FFFF')
@@ -435,10 +427,11 @@ client.on('messageCreate', (message) => {
                 `
                 You used this command recently so you have to wait!
                 `);
-                message.channel.send({embeds: [messageEmbed]});
+                interaction.reply({embeds: [messageEmbed]});
             }
             break;
-        case '!work':
+        }
+        case 'work': {
             if (hasJob(userID)) {
 
                 const job = getJob(userID);
@@ -455,7 +448,7 @@ client.on('messageCreate', (message) => {
                         To be exact, you have to wait **${Math.floor((job.cooldown * 1000 - (Date.now() - getLastWorked(userID))) / 1000)}s**!
                         `
                     );
-                    message.channel.send({embeds: [messageEmbed]});
+                    interaction.reply({embeds: [messageEmbed]});
                     return;
                 }
 
@@ -463,7 +456,7 @@ client.on('messageCreate', (message) => {
                 addToBalance(userID, job.baseSalary);
                 let description = 
                 `
-                **${message.author.username} the ${job.name}**
+                **${interaction.user.username} the ${job.name}**
                 You worked hard and earned ${job.baseSalary} :coin:!
                 Total money: ${getBalanceFor(userID)} :coin:
 
@@ -492,7 +485,7 @@ client.on('messageCreate', (message) => {
                 .setAuthor(embedAuthorData)
                 .setTitle('Work')
                 .setDescription(description);
-                message.channel.send({embeds: [messageEmbed]});
+                interaction.reply({embeds: [messageEmbed]});
             } else {
                 const messageEmbed = new Discord.MessageEmbed()
                 .setColor('#00FFFF')
@@ -504,44 +497,92 @@ client.on('messageCreate', (message) => {
                     You don't have a job!
                     Use the command **!jobs** to look for one!
                     `);
-                message.channel.send({embeds: [messageEmbed]});
+                interaction.reply({embeds: [messageEmbed]});
             }
             break;
-        case '!jobapply':
-            if (dividedMessage.length > 1) {
-                const availableJobs = getAvailableJobs(userID);
-                if (typeof availableJobs[dividedMessage[1]] !== 'undefined') {
-                    let description = '';
+        }
+        case 'jobapply': {
+            const availableJobs = getAvailableJobs(userID);
+            const jobid = interaction.options.getInteger('jobid');
 
-                    if (hasJob(userID)) {
-                        description = 
-                        `
-                        You left your old job.
-                        *Welcome to your new job!*
-                        `
-                    } else {
-                        description = 
-                        `
-                        *Welcome to your new job!*
-                        `
-                    }
+            if (typeof availableJobs[jobid] !== 'undefined') {
+                let description = '';
 
-                    setJob(userID, availableJobs[dividedMessage[1]]);
-                    economyData[userID].availableJobs.splice(dividedMessage[1], 1);
-
-                    const messageEmbed = new Discord.MessageEmbed()
-                    .setColor('#00FFFF')
-                    .setFooter(embedFooterData)
-                    .setAuthor(embedAuthorData)
-                    .setTitle('Work')
-                    .setDescription(description);
-                    message.channel.send({embeds: [messageEmbed]});
+                if (hasJob(userID)) {
+                    description = 
+                    `
+                    You left your old job.
+                    *Welcome to your new job!*
+                    `
                 } else {
-                    message.reply('This job does not exist!');
+                    description = 
+                    `
+                    *Welcome to your new job!*
+                    `
                 }
-            } else {
-                message.reply('Usage: **!jobapply [ID]**');
-            }
-    }
 
+                setJob(userID, availableJobs[jobid]);
+                economyData[userID].availableJobs.splice(jobid, 1);
+
+                const messageEmbed = new Discord.MessageEmbed()
+                .setColor('#00FFFF')
+                .setFooter(embedFooterData)
+                .setAuthor(embedAuthorData)
+                .setTitle('Work')
+                .setDescription(description);
+                interaction.reply({embeds: [messageEmbed]});
+            } else {
+                interaction.reply('This job does not exist!');
+            }
+            break;
+        }
+    }
 });
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('balance')
+    .setDescription('Views your balance')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('money')
+    .setDescription('Views your balance')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('job')
+    .setDescription('Views your current job')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('jobs')
+    .setDescription('Views jobs available to you')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('jobapply')
+    .setDescription('Applies to a job')
+    .addIntegerOption(option => 
+        option
+        .setName('jobid')
+        .setDescription('ID of the job you\'re applying to')
+        .setRequired(true)
+    )
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('refreshjobs')
+    .setDescription('Refreshes jobs available to you')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('work')
+    .setDescription('Works if you have a job')
+);
