@@ -3,6 +3,21 @@ const Discord = require('discord.js');
 const Rest = require('@discordjs/rest');
 const DiscordApiTypes = require('discord-api-types/v9');
 
+let config = {};
+
+try {
+    config = JSON.parse(fs.readFileSync('config.json'));
+} catch(e) {
+    console.log('config.json doesn\'t exist or isn\'t valid JSON!');
+    console.error(e);
+    process.exit(1);
+}
+
+if (config.token === '') {
+    console.log('You haven\'t specified a token in config.json!');
+    process.exit(1);
+}
+
 const intents = new Discord.Intents([
     "GUILDS",
     "GUILD_PRESENCES",
@@ -10,7 +25,9 @@ const intents = new Discord.Intents([
     "GUILD_MESSAGE_REACTIONS"
 ]);
 
-const client = new Discord.Client({intents: intents});
+const ws = config.mobile == true ? { properties: { $browser: 'Discord Android' } } : undefined;
+
+const client = new Discord.Client({intents: intents, ws: ws});
 const slashCommandsList = [];
 
 module.exports = {client, slashCommandsList};
@@ -67,7 +84,5 @@ client.on('messageCreate', message => {
     }
 });
 
-let token = fs.readFileSync('token.txt').toString();
-const rest = new Rest.REST({ version: '9' }).setToken(token);
-
-client.login(token);
+const rest = new Rest.REST({ version: '9' }).setToken(config.token);
+client.login(config.token);
