@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
-const { client } = require('./main');
+const Builders = require('@discordjs/builders');
+const { client, slashCommandsList } = require('./main');
 const fs = require('fs');
 
 let timeout = null;
@@ -69,6 +70,75 @@ function updateOnlineStatuses() {
     fs.writeFile('namedictionary.txt', nameDictionaryString, ()=>{});
 }
 
+client.on('interactionCreate', interaction => {
+    if (!interaction.isCommand()) return;
+    
+    switch(interaction.commandName) {
+        case 'lastonline': {
+            const user = interaction.options.getUser('user');
+
+            if (!fs.existsSync(`statusdata/${user.id}`)){
+                interaction.reply('I don\'t have data about this user.');
+                return;
+            }
+
+            const data = fs.readFileSync(`statusdata/${user.id}`);
+            const dataLength = data.length;
+
+            if (dataLength < 5) {
+                interaction.reply('I don\'t have data about this user.');
+                return;
+            }
+
+            let lastOnlineTimestamp = null;
+            let lastOnlineStatus = null;
+
+            for (let offset = dataLength - 5; offset > 0; offset -= 5) {
+                const entry = data.subarray(offset, offset + 5);
+                const status = String.fromCharCode(entry.readUint8(4));
+
+                if (status !== 'f' && status !== 'F') {
+                    lastOnlineTimestamp = entry.readUInt32BE();
+                    lastOnlineStatus = status;
+                    break;
+                }
+            }
+
+            const statusCharToDescription = {
+                'o': 'Online',
+                'O': 'Online on mobile',
+                'd': 'Do not disturb',
+                'D': 'Do not disturb on mobile',
+                'i': 'Idle',
+                'I': 'Idle on mobile'
+            }
+
+            if (lastOnlineTimestamp === null) {
+                interaction.reply('I\'ve never seen this user online.');
+            } else {
+                if (Date.now() / 1000 - lastOnlineTimestamp < 60) {
+                    interaction.reply(`${user.username} is online right now (${statusCharToDescription[lastOnlineStatus]}).`);
+                } else {
+                    interaction.reply(`${user.username} was last online <t:${lastOnlineTimestamp}:R> (${statusCharToDescription[lastOnlineStatus]})`);
+                }
+            }
+            break;
+        }
+    }
+});
+
 client.once('ready', () => {
     timeout = setTimeout(update, msToNextFullMinute());
 });
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('lastonline')
+    .setDescription('Checks when a user was last online')
+    .addUserOption(option =>
+        option
+        .setName('user')
+        .setDescription('User')
+        .setRequired(true)
+    )
+);
