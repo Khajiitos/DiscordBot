@@ -36,17 +36,18 @@ client.on('messageCreate', message => {
         return;
     
     switch(dividedMessage[0]) {
-        case "!avatar":
+        case "!avatar": {
             const messageEmbed = new Discord.MessageEmbed()
             .setColor('#0000FF')
             .setImage(message.author.avatarURL())
             .setTitle('Your avatar');
             message.channel.send({embeds: [messageEmbed]});
             break;
-        case "!jseval":
+        }
+        case "!jseval": {
             if (message.author.id == '408330424562089984') {
                 try {
-                    let code = dividedMessage.slice(1).join(' ');
+                    const code = dividedMessage.slice(1).join(' ');
                     let ret = String(eval(code));
                     if (ret == '')
                         ret = ' ';
@@ -58,9 +59,11 @@ client.on('messageCreate', message => {
                 message.reply(':flushed:');
             }
             break;
-        case ";rec":
+        }
+        case ";rec": {
             message.channel.send('https://media.discordapp.net/attachments/844656969432432680/925823807401390080/among.png');
             break;
+        }
     }
 });
 
