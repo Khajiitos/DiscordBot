@@ -165,7 +165,7 @@ class TicTacToeGame {
                     break;
                 }
             }
-            games[this.user] = undefined;
+            games[this.user.id] = undefined;
         } else {
             const messageEmbed = new Discord.MessageEmbed()
             .setTitle('Tic Tac Toe')
@@ -229,7 +229,7 @@ client.on('interactionCreate', interaction => {
 
         switch(interaction.commandName) {
             case 'tictactoe_start': {
-                if (games[interaction.user] != undefined) {
+                if (games[interaction.user.id] != undefined) {
                     interaction.reply("You are already in a game!");
                     return;
                 }
@@ -241,56 +241,56 @@ client.on('interactionCreate', interaction => {
                     game.createMessage();
                 });
 
-                games[interaction.user] = game;
+                games[interaction.user.id] = game;
                 break;
             }
             case 'tictactoe_check': {
-                interaction.reply(games[interaction.user] ? "You are in a tictactoe game." : "You aren't in a tictactoe game.");
+                interaction.reply(games[interaction.user.id] ? "You are in a tictactoe game." : "You aren't in a tictactoe game.");
                 break;
             }
             case 'tictactoe_quit': {
-                if (!games[interaction.user]) {
+                if (!games[interaction.user.id]) {
                     interaction.reply("You aren't in a game!");
                     return;
                 }
                 interaction.reply("lMaO u CaN't EvEn WiN wItH a StUpId BoT iN tIcTaCtOe So U lEaVe SmH").then(() => {
                     interaction.deleteReply();
                 });
-                games[interaction.user] = undefined;
+                games[interaction.user.id] = undefined;
                 break;
             }
         }
     } else if (interaction.isButton()) {
         if (!interaction.customId.startsWith('tttbutton')) return;
-        if (!games[interaction.user]) return;
-        if (games[interaction.user].gameOver) return;
+        if (!games[interaction.user.id]) return;
+        if (games[interaction.user.id].gameOver) return;
 
         // This prevents "This interaction failed" warnings
         interaction.deferUpdate();
 
-        if (games[interaction.user].turn === false) return;
+        if (games[interaction.user.id].turn === false) return;
 
         const fieldNumber = interaction.customId.substring(9);
 
-        if (typeof games[interaction.user].board[fieldNumber] !== 'undefined') {
+        if (typeof games[interaction.user.id].board[fieldNumber] !== 'undefined') {
 
-            if (games[interaction.user].board[fieldNumber] !== 0)
+            if (games[interaction.user.id].board[fieldNumber] !== 0)
                 return;
 
-            games[interaction.user].board[fieldNumber] = 1;
-            games[interaction.user].turn = false;
-            games[interaction.user].updateMessage();
+            games[interaction.user.id].board[fieldNumber] = 1;
+            games[interaction.user.id].turn = false;
+            games[interaction.user.id].updateMessage();
 
-            if (games[interaction.user] && !games[interaction.user].gameOver) {
+            if (games[interaction.user.id] && !games[interaction.user.id].gameOver) {
                 setTimeout(() => {
 
-                    const selection = games[interaction.user].findRandomEmptyField();
+                    const selection = games[interaction.user.id].findRandomEmptyField();
                     if (selection === -1)
                         return;
 
-                    games[interaction.user].board[selection] = 2;
-                    games[interaction.user].turn = true;
-                    games[interaction.user].updateMessage();
+                    games[interaction.user.id].board[selection] = 2;
+                    games[interaction.user.id].turn = true;
+                    games[interaction.user.id].updateMessage();
                 }, randomInteger(1000, 2000));
             }
         } else {
