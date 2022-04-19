@@ -1,9 +1,9 @@
 const Discord = require('discord.js');
-const client = require('./main');
+const Builders = require('@discordjs/builders');
+const { client, slashCommandsList } = require('./main');
 
 let games = [];
 
-const reactions = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣'];
 const embedFooterData = {text: 'TicTacToe bot by Khajiitos#5835', iconURL: 'https://cdn.discordapp.com/avatars/408330424562089984/9a944c01c8b129b05d74b7e4ec72c901.webp'};
 
 function randomInteger(min, max) {
@@ -14,48 +14,12 @@ class TicTacToeGame {
     user = null;
     board = [0, 0, 0, 0, 0, 0, 0, 0, 0]; // 0 - empty, 1 - X (user), 2 - O (bot)
     turn = true; // false - bot's turn, true - user's turn
-    message = null;
-    channel = null;
     gameOver = false;
+    components = [];
+    interaction = null;
     
     turnToString() {
         return this.turn ? `It's ${this.user.username}'s turn!` : 'It\'s the bot\'s turn!';
-    }
-
-    onReaction(reaction) {
-
-        if (this.turn == false)
-            return;
-
-        if (this.gameOver)
-            return;
-
-        for (let i = 0; i < reactions.length; i++) {
-            if (reaction == reactions[i]) {
-
-                if (this.board[i] != 0)
-                    return;
-
-                this.board[i] = 1;
-                this.turn = false;
-                this.updateMessage();
-                if (!this.gameOver) {
-                    // TODO: this might not be very secure
-                    var thisgame = this;
-                    setTimeout(function() {
-
-                        let selection = thisgame.findRandomEmptyField();
-                        if (selection == -1)
-                            return;
-
-                        thisgame.board[selection] = 2;
-                        thisgame.turn = true;
-                        thisgame.updateMessage();
-                    }, randomInteger(1500, 2500));
-                    break;
-                }
-            }
-        }
     }
 
     getColor() {
@@ -79,36 +43,68 @@ class TicTacToeGame {
     }
 
     createMessage() {
-        if (this.channel instanceof Discord.Channel && this.user instanceof Discord.User && this.message instanceof Discord.Message) {
-            // TODO: this might not be very secure
-            var thisgame = this;
+        // TODO: this might not be very secure
+        var thisgame = this;
 
-            if (this.turn == false) {
-                setTimeout(function() {
+        if (this.turn === false) {
+            setTimeout(() => {
 
-                    let selection = thisgame.findRandomEmptyField();
-                    if (selection == -1)
-                        return;
-
-                    thisgame.board[selection] = 2;
-                    thisgame.turn = true;
-                    thisgame.updateMessage();
-                }, randomInteger(1500, 2500));
-            }
-
-            this.updateMessage();
-
-            for (let i = 0; i < reactions.length; i++){
-                this.message.react(reactions[i]).catch(error => {
-                    console.log(error);
-                    console.log('Failed to react to a message, game cancelled.');
-                    games[this.user] = undefined;
+                const selection = thisgame.findRandomEmptyField();
+                if (selection == -1)
                     return;
-                });
-            }
-        } else {
-            console.log('uninitialized variables');
+
+                thisgame.board[selection] = 2;
+                thisgame.turn = true;
+                thisgame.updateMessage();
+            }, randomInteger(1500, 2500));
         }
+
+        this.components = [
+            new Discord.MessageActionRow().addComponents(
+                new Discord.MessageButton()
+                .setCustomId('tttbutton0')
+                .setLabel('A1')
+                .setStyle('SECONDARY'),
+                new Discord.MessageButton()
+                .setCustomId('tttbutton1')
+                .setLabel('A2')
+                .setStyle('SECONDARY'),
+                new Discord.MessageButton()
+                .setCustomId('tttbutton2')
+                .setLabel('A3')
+                .setStyle('SECONDARY')
+            ),
+            new Discord.MessageActionRow().addComponents(
+                new Discord.MessageButton()
+                .setCustomId('tttbutton3')
+                .setLabel('B1')
+                .setStyle('SECONDARY'),
+                new Discord.MessageButton()
+                .setCustomId('tttbutton4')
+                .setLabel('B2')
+                .setStyle('SECONDARY'),
+                new Discord.MessageButton()
+                .setCustomId('tttbutton5')
+                .setLabel('B3')
+                .setStyle('SECONDARY')
+            ),
+            new Discord.MessageActionRow().addComponents(
+                new Discord.MessageButton()
+                .setCustomId('tttbutton6')
+                .setLabel('C1')
+                .setStyle('SECONDARY'),
+                new Discord.MessageButton()
+                .setCustomId('tttbutton7')
+                .setLabel('C2')
+                .setStyle('SECONDARY'),
+                new Discord.MessageButton()
+                .setCustomId('tttbutton8')
+                .setLabel('C3')
+                .setStyle('SECONDARY')
+            )
+        ];
+
+        this.updateMessage();
     }
 
     findRandomEmptyField() {
@@ -117,76 +113,74 @@ class TicTacToeGame {
             if (this.board[i] == 0)
                 fields.push(i);
         }
-        let len = fields.length;
 
-        if (len == 0)
+        if (fields.length === 0)
             return -1;
         
-        return fields[randomInteger(0, len - 1)];
+        return fields[randomInteger(0, fields.length - 1)];
     }
 
     updateMessage() {
-        if (this.message == null)
-            return console.log("this.message was null");
 
-        if (this.message instanceof Discord.Message){
+        const winnercheck = this.winnerCheck();
 
-            let winnercheck = this.winnerCheck();
+        if (winnercheck !== 0)
+            this.gameOver = true;
 
-            if (winnercheck != 0)
-                this.gameOver = true;
+        const embedAuthorData = {name: this.user.username, iconURL: this.user.avatarURL()};
 
-            let embedAuthorData = {name: this.user.username, iconURL: this.user.avatarURL()};
-
-            if (this.gameOver) {
-                switch(winnercheck){
-                    case 1: {
-                        const messageEmbed = new Discord.MessageEmbed()
-                        .setTitle('Tic Tac Toe')
-                        .setDescription(`The game is over.\n**Winner**: *${this.user.username}*`)
-                        .setColor('BLUE')
-                        .setAuthor(embedAuthorData)
-                        .setFooter(embedFooterData);
-            
-                        this.message.edit({embeds: [messageEmbed]});
-                        break;
-                    }
-                    case 2: {
-                        const messageEmbed = new Discord.MessageEmbed()
-                        .setTitle('Tic Tac Toe')
-                        .setDescription('The game is over.\n**Winner**: *BOT*')
-                        .setColor('YELLOW')
-                        .setAuthor(embedAuthorData)
-                        .setFooter(embedFooterData);
-            
-                        this.message.edit({embeds: [messageEmbed]});
-                        break;
-                    }
-                    case 3: {
-                        const messageEmbed = new Discord.MessageEmbed()
-                        .setTitle('Tic Tac Toe')
-                        .setDescription('The game is over.\nIt\'s a draw!')
-                        .setColor('RED')
-                        .setAuthor(embedAuthorData)
-                        .setFooter(embedFooterData);
-            
-                        this.message.edit({embeds: [messageEmbed]});
-                        break;
-                    }
+        if (this.gameOver) {
+            switch(winnercheck) {
+                case 1: {
+                    const messageEmbed = new Discord.MessageEmbed()
+                    .setTitle('Tic Tac Toe')
+                    .setDescription(`The game is over.\n**Winner**: *${this.user.username}*`)
+                    .setColor('BLUE')
+                    .setAuthor(embedAuthorData)
+                    .setFooter(embedFooterData);
+        
+                    this.interaction.editReply({embeds: [messageEmbed], components: []});
+                    break;
                 }
-                games[this.user] = undefined;
-            } else {
-                const messageEmbed = new Discord.MessageEmbed()
-                .setTitle('Tic Tac Toe')
-                .setDescription(`${this.boardString()}\nPlaying as ❌\n${this.turnToString()}\n`)
-                .setColor(this.getColor())
-                .setAuthor(embedAuthorData)
-                .setFooter(embedFooterData);
-    
-                this.message.edit({embeds: [messageEmbed]});
+                case 2: {
+                    const messageEmbed = new Discord.MessageEmbed()
+                    .setTitle('Tic Tac Toe')
+                    .setDescription('The game is over.\n**Winner**: *BOT*')
+                    .setColor('YELLOW')
+                    .setAuthor(embedAuthorData)
+                    .setFooter(embedFooterData);
+        
+                    this.interaction.editReply({embeds: [messageEmbed], components: []});
+                    break;
+                }
+                case 3: {
+                    const messageEmbed = new Discord.MessageEmbed()
+                    .setTitle('Tic Tac Toe')
+                    .setDescription('The game is over.\nIt\'s a draw!')
+                    .setColor('RED')
+                    .setAuthor(embedAuthorData)
+                    .setFooter(embedFooterData);
+        
+                    this.interaction.editReply({embeds: [messageEmbed], components: []});
+                    break;
+                }
             }
+            games[this.user] = undefined;
         } else {
-            console.log('TicTacToeGame.message is not an instance of Discord.Message');
+            const messageEmbed = new Discord.MessageEmbed()
+            .setTitle('Tic Tac Toe')
+            .setDescription(`${this.boardString()}\nPlaying as ❌\n${this.turnToString()}\n`)
+            .setColor(this.getColor())
+            .setAuthor(embedAuthorData)
+            .setFooter(embedFooterData);
+
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    this.components[i].components[j].setDisabled(this.board[i * 3 + j] !== 0);
+                }
+            }
+
+            this.interaction.editReply({embeds: [messageEmbed], components: this.components});
         }
     }
 
@@ -230,111 +224,95 @@ class TicTacToeGame {
     }
 }
 
-client.on('messageCreate', (message) => {
+client.on('interactionCreate', interaction => {
+    if (interaction.isCommand()) {
 
-    let dividedMessage = message.content.toLowerCase().split(' ');
+        switch(interaction.commandName) {
+            case 'tictactoe_start': {
+                if (games[interaction.user] != undefined) {
+                    interaction.reply("You are already in a game!");
+                    return;
+                }
+                let game = new TicTacToeGame();
+                game.user = interaction.user;
+                game.interaction = interaction;
 
-    if (message.author.bot || dividedMessage.length === 0) {
-        return;
-    }
+                interaction.reply('Started a TicTacToe game!').then(() => {
+                    game.createMessage();
+                });
 
-    if (dividedMessage[0] !== '!tictactoe' && dividedMessage[0] !== '!ttt') {
-        return;
-    }
-
-    if (dividedMessage.length === 1 || dividedMessage[1] === 'help') {
-        let embedAuthorData = {name: message.author.username, iconURL: message.author.avatarURL()};
-
-        const messageEmbed = new Discord.MessageEmbed()
-        .setColor('#00FFFF')
-        .setTitle('TicTacToe - Help')
-        .setFooter(embedFooterData)
-        .setAuthor(embedAuthorData)
-        .setDescription(
-            `
-            **!tictactoe help** - shows this page
-            **!tictactoe start** - starts a new Tic Tac Toe game
-            **!tictactoe check** - checks if you're in a Tic Tac Toe game
-            **!tictactoe quit** - quits your current TicTacToe game
-            **!tictactoe update** - updates the board if any issues have occured
-            `);
-        message.channel.send({embeds: [messageEmbed]});
-        return;
-    }
-
-    switch(dividedMessage[1]) {
-        case 'start':
-            if (games[message.author] != undefined) {
-                message.reply("You are already in a game!");
-                return;
+                games[interaction.user] = game;
+                break;
             }
-            let game = new TicTacToeGame();
-            game.channel = message.channel;
-            game.user = message.author;
-            message.reply('started a TicTacToe game!').then(message => {
-                game.message = message;
-                game.createMessage();
-            });
-            games[message.author] = game;
-            break;
-        case 'check':
-            message.reply(games[message.author] ? "You are in a tictactoe game." : "You aren't in a tictactoe game.");
-            break;
-        case 'quit':
-            if (!games[message.author]) {
-                message.reply("You aren't in a game!");
-                return;
+            case 'tictactoe_check': {
+                interaction.reply(games[interaction.user] ? "You are in a tictactoe game." : "You aren't in a tictactoe game.");
+                break;
             }
-            message.reply("lMaO u CaN't EvEn WiN wItH a StUpId BoT iN tIcTaCtOe So U lEaVe SmH");
-            if (games[message.author].message instanceof Discord.Message) {
-                games[message.author].message.edit(content="This game has ended!");
-            }
-            games[message.author] = undefined;
-            break;
-        case 'update':
-            if (games[message.author] != undefined) {
-                games[message.author].updateMessage();
-            } else {
-                message.reply('You don\'t seem to be in a Tic Tac Toe game.');
-            }
-            break;
-        default:
-            message.reply('I don\'t recognize this subcommand. Try using **!tictactoe help** for a list of commands.');
-    }
-});
-
-client.on('messageReactionAdd', (reaction, user) => {
-
-    if (reaction.message.author != client.user)
-        return;
-
-    if (user == client.user)
-        return;
-
-    if (games[user] != undefined && reaction.message == games[user].message) {
-        for (let i = 0; i < reactions.length; i++) {
-            if (reaction.emoji.toString() == reactions[i]) {
-                games[user].onReaction(reaction.emoji.toString());
+            case 'tictactoe_quit': {
+                if (!games[interaction.user]) {
+                    interaction.reply("You aren't in a game!");
+                    return;
+                }
+                interaction.reply("lMaO u CaN't EvEn WiN wItH a StUpId BoT iN tIcTaCtOe So U lEaVe SmH").then(() => {
+                    interaction.deleteReply();
+                });
+                games[interaction.user] = undefined;
                 break;
             }
         }
-    }
-    reaction.users.remove(user);
-});
+    } else if (interaction.isButton()) {
+        if (!interaction.customId.startsWith('tttbutton')) return;
+        if (!games[interaction.user]) return;
+        if (games[interaction.user].gameOver) return;
 
-client.on('messageDelete', message => {
+        // This prevents "This interaction failed" warnings
+        interaction.deferUpdate();
 
-    if (message.author != client.user)
-        return;
+        if (games[interaction.user].turn === false) return;
 
-    for (const [user, game] of Object.entries(games)) {
-        
-        if (game == null || game == undefined)
-            continue;
+        const fieldNumber = interaction.customId.substring(9);
 
-        if (game.message == message) {
-            games[user] = undefined;
-            console.log('A game was deleted because the message was removed.');
+        if (typeof games[interaction.user].board[fieldNumber] !== 'undefined') {
+
+            if (games[interaction.user].board[fieldNumber] !== 0)
+                return;
+
+            games[interaction.user].board[fieldNumber] = 1;
+            games[interaction.user].turn = false;
+            games[interaction.user].updateMessage();
+
+            if (games[interaction.user] && !games[interaction.user].gameOver) {
+                setTimeout(() => {
+
+                    const selection = games[interaction.user].findRandomEmptyField();
+                    if (selection === -1)
+                        return;
+
+                    games[interaction.user].board[selection] = 2;
+                    games[interaction.user].turn = true;
+                    games[interaction.user].updateMessage();
+                }, randomInteger(1500, 2500));
+            }
+        } else {
+            console.log(`Invalid field from string: "${interaction.customId}", "${fieldNumber}"`);
         }
     }
 });
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('tictactoe_start')
+    .setDescription('Starts a new TicTacToe game')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('tictactoe_check')
+    .setDescription('Checks if you\'re in a TicTacToe game')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('tictactoe_quit')
+    .setDescription('Quits your current TicTacToe game')
+);

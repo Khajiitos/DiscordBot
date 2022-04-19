@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Khajiitos/DiscordBot#readme",
   "dependencies": {
+    "@discordjs/rest": "^0.4.1",
     "discord.js": "^13.6.0"
   }
 }
