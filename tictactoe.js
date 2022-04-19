@@ -56,7 +56,7 @@ class TicTacToeGame {
                 thisgame.board[selection] = 2;
                 thisgame.turn = true;
                 thisgame.updateMessage();
-            }, randomInteger(1500, 2500));
+            }, randomInteger(1000, 2000));
         }
 
         this.components = [
@@ -291,7 +291,7 @@ client.on('interactionCreate', interaction => {
                     games[interaction.user].board[selection] = 2;
                     games[interaction.user].turn = true;
                     games[interaction.user].updateMessage();
-                }, randomInteger(1500, 2500));
+                }, randomInteger(1000, 2000));
             }
         } else {
             console.log(`Invalid field from string: "${interaction.customId}", "${fieldNumber}"`);
