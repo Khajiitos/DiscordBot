@@ -297,14 +297,18 @@ client.on('messageCreate', (message) => {
         return;
     }
 
+    // This will be removed btw
+
     switch(dividedMessage[0]) {
-        case '!debugdata':
+        case '!debugdata': {
             message.reply("```json\n" + JSON.stringify(economyData, null, 2) + "```");
             break;
-        case '!debugwipedata':
+        }
+        case '!debugwipedata': {
             economyData = {};
             message.reply("```json\n" + JSON.stringify(economyData, null, 2) + "```");
             break;
+        }
     }
 });
 
