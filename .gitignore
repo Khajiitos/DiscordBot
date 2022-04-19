@@ -1,4 +1,4 @@
-token.txt
+config.json
 node_modules/*
 statusdata/*
 bot.js
