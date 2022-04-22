@@ -124,6 +124,45 @@ client.on('interactionCreate', interaction => {
             }
             break;
         }
+        case 'lastoffline': {
+            const user = interaction.options.getUser('user');
+
+            if (!fs.existsSync(`statusdata/${user.id}`)){
+                interaction.reply('I don\'t have data about this user.');
+                return;
+            }
+
+            const data = fs.readFileSync(`statusdata/${user.id}`);
+            const dataLength = data.length;
+
+            if (dataLength < 5) {
+                interaction.reply('I don\'t have data about this user.');
+                return;
+            }
+
+            let lastOfflineTimestamp = null;
+
+            for (let offset = dataLength - 5; offset > 0; offset -= 5) {
+                const entry = data.subarray(offset, offset + 5);
+                const status = String.fromCharCode(entry.readUint8(4));
+
+                if (status === 'f' || status === 'F') {
+                    lastOfflineTimestamp = entry.readUInt32BE();
+                    break;
+                }
+            }
+
+            if (lastOfflineTimestamp === null) {
+                interaction.reply('I\'ve never seen this user offline.');
+            } else {
+                if (Date.now() / 1000 - lastOfflineTimestamp < 60) {
+                    interaction.reply(`${user.username} is offline right now.`);
+                } else {
+                    interaction.reply(`${user.username} was last offline <t:${lastOfflineTimestamp}:R>`);
+                }
+            }
+            break;
+        }
     }
 });
 
@@ -135,6 +174,18 @@ slashCommandsList.push(
     new Builders.SlashCommandBuilder()
     .setName('lastonline')
     .setDescription('Checks when a user was last online')
+    .addUserOption(option =>
+        option
+        .setName('user')
+        .setDescription('User')
+        .setRequired(true)
+    )
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('lastoffline')
+    .setDescription('Checks when a user was last offline')
     .addUserOption(option =>
         option
         .setName('user')
