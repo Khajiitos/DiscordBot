@@ -7,7 +7,7 @@ let games = [];
 const embedFooterData = {text: 'TicTacToe bot by Khajiitos#5835', iconURL: 'https://cdn.discordapp.com/avatars/408330424562089984/9a944c01c8b129b05d74b7e4ec72c901.webp'};
 
 function randomInteger(min, max) {
-    return min + Math.floor(Math.random() * (max - min));
+    return min + Math.floor(Math.random() * (max - min + 1));
 }
 
 class TicTacToeGame {
@@ -264,7 +264,7 @@ client.on('interactionCreate', interaction => {
         if (!interaction.customId.startsWith('tttbutton')) return;
         if (!games[interaction.user.id]) return;
         if (games[interaction.user.id].gameOver) return;
-
+        
         // This prevents "This interaction failed" warnings
         interaction.deferUpdate();
 

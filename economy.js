@@ -25,7 +25,7 @@ let economyData = { };
 let jobs = [];
 
 function randomInteger(min, max) {
-    return min + Math.floor(Math.random() * (max - min));
+    return min + Math.floor(Math.random() * (max - min + 1));
 }
 
 function readJobsFromFile() {
@@ -153,7 +153,7 @@ function removeFromBalance(userID, balance) {
     if (!hasEconomyEntry(userID)) {
         createEconomyEntryForUserID(userID);
     }
-    return economyData[userID].balance += balance;
+    return economyData[userID].balance -= balance;
 }
 
 function hasJob(userID) {
@@ -540,6 +540,72 @@ client.on('interactionCreate', interaction => {
             }
             break;
         }
+        case 'coinflip': {
+            let money = interaction.options.getInteger('money');
+
+            if (money === 0) {
+                money = Math.floor(getBalanceFor(userID) / 2);
+            }
+
+            const messageEmbed = new Discord.MessageEmbed()
+            .setColor('#00FFFF')
+            .setFooter(embedFooterData)
+            .setAuthor(embedAuthorData)
+            .setTitle('Coinflip')
+
+            let description = '';
+
+            if (money > getBalanceFor(userID)) {
+                description =
+                `
+                You don't have this much money!
+                `
+            } else if (money > Math.floor(getBalanceFor(userID) / 2)) {
+                description = 
+                `
+                You can gamble up to half of your money at once!
+                `
+            } else if (getBalanceFor(userID) < 2) {
+                description = 
+                `
+                You don't have enough money to gamble!
+                You need at least 2 :coin:!
+                `
+            } else {
+                const win = randomInteger(0, 1) === 0;
+
+                if (win) {
+                    addToBalance(userID, money);
+                    description = 
+                    `
+                    Congratulations!
+                    You won ${money} :coin:!
+                    `
+                } else {
+                    removeFromBalance(userID, money);
+                    description = 
+                    `
+                    :cry: You've lost ${money} :coin:.
+                    `
+                }
+                description +=
+                `
+                You now have ${getBalanceFor(userID)} :coin:
+                `
+                messageEmbed.setDescription(description);
+                interaction.reply({embeds: [messageEmbed]});
+                return;
+            }
+
+            description +=
+            `
+            You have ${getBalanceFor(userID)} :coin:,
+            and you can gamble up to ${Math.floor(getBalanceFor(userID) / 2)} :coin: at once!
+            `
+
+            messageEmbed.setDescription(description);
+            interaction.reply({embeds: [messageEmbed]});
+        }
     }
 });
 
@@ -589,4 +655,17 @@ slashCommandsList.push(
     new Builders.SlashCommandBuilder()
     .setName('work')
     .setDescription('Works if you have a job')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('coinflip')
+    .setDescription('Gambles up to half of your money')
+    .addIntegerOption(option =>
+        option
+        .setName('money')
+        .setDescription('Amount of money you\'re willing to gamble (0 - everything you can)')
+        .setRequired(true)
+        .setMinValue(0)
+    )
 );
