@@ -280,6 +280,15 @@ function writeEconomyDataToFile(exitProcessAfterwards = false) {
     }
 }
 
+function getUsernameAndDiscriminatorFromUserID(userid) {
+    if (typeof client.users.cache.get(userid) !== 'undefined') {
+        const user = client.users.cache.get(userid);
+        return user.username + '#' + user.discriminator;
+    } else {
+        return userid;
+    }
+}
+
 readJobsFromFile();
 readEconomyDataFromFile();
 setInterval(writeEconomyDataToFile, 60000);
@@ -605,6 +614,36 @@ client.on('interactionCreate', interaction => {
 
             messageEmbed.setDescription(description);
             interaction.reply({embeds: [messageEmbed]});
+            break;
+        }
+        case 'baltop': {
+            let arr = [];
+            for (let player of Object.keys(economyData)) {
+                arr.push({
+                    userid: player,
+                    balance: economyData[player].balance
+                });
+            }
+
+            arr.sort((a, b) => {
+                return b.balance - a.balance;
+            });
+
+            let description = '';
+
+            for (let i = 0; i < Math.min(arr.length, 10); i++) {
+                description += `**${i + 1}.** ${getUsernameAndDiscriminatorFromUserID(arr[i].userid)} - ${arr[i].balance} :coin:\n`;
+            }
+
+            const messageEmbed = new Discord.MessageEmbed()
+            .setColor('#00FFFF')
+            .setFooter(embedFooterData)
+            .setAuthor(embedAuthorData)
+            .setTitle('Balance top')
+            .setDescription(description);
+
+            interaction.reply({embeds: [messageEmbed]});
+            break;
         }
     }
 });
@@ -668,4 +707,10 @@ slashCommandsList.push(
         .setRequired(true)
         .setMinValue(0)
     )
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('baltop')
+    .setDescription('Views the richest players')
 );
