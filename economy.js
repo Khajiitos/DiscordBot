@@ -364,7 +364,7 @@ client.on('interactionCreate', interaction => {
                 .setDescription(
                     `
                     You don't have a job!
-                    You can view your available jobs using the **!jobs** command!
+                    You can view your available jobs using the **/jobs** command!
                     `);
                 interaction.reply({embeds: [messageEmbed]});
             }
@@ -386,9 +386,9 @@ client.on('interactionCreate', interaction => {
                 }
 
                 description += `
-                To apply for a job, simply use the command **!jobapply [ID]**!
+                To apply for a job, simply use the command **/jobapply [ID]**!
 
-                You can refresh this page using the **!refreshjobs** command!
+                You can refresh this page using the **/refreshjobs** command!
                 ${(Date.now() - getLastJobRefresh(userID) > 600000) ? 'You can use it every 10 minutes!' : 'You can use it every 10 minutes, you used it recently so you have to wait!'}
                 `;
 
@@ -408,7 +408,7 @@ client.on('interactionCreate', interaction => {
                 .setDescription(
                     `
                     There are no jobs available for you!
-                    You can refresh this page using the **!refreshjobs** command!
+                    You can refresh this page using the **/refreshjobs** command!
                     ${(Date.now() - getLastJobRefresh(userID) > 600000) ? 'You can use it every 10 minutes!' : 'You can use it every 10 minutes, you used it recently so you have to wait!'}
                     `);
                 interaction.reply({embeds: [messageEmbed]});
@@ -427,7 +427,7 @@ client.on('interactionCreate', interaction => {
                 .setDescription(
                 `
                 Refreshed the job list!
-                Now, use the **!jobs** command to view the list!
+                Now, use the **/jobs** command to view the list!
                 `);
                 interaction.reply({embeds: [messageEmbed]});
             } else {
@@ -508,7 +508,7 @@ client.on('interactionCreate', interaction => {
                 .setDescription(
                     `
                     You don't have a job!
-                    Use the command **!jobs** to look for one!
+                    Use the command **/jobs** to look for one!
                     `);
                 interaction.reply({embeds: [messageEmbed]});
             }
