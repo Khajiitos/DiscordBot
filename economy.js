@@ -18,6 +18,7 @@ const defaultUserEconomyData = {
     ],
     lastWorked: 0,
     lastJobRefresh: 0,
+    lastCoinflipped: 0,
     jobExperiences: { }
 };
 
@@ -51,7 +52,7 @@ function validateAllFieldsPresentInEconomyData() {
         }
     }
     if (totalFieldsMissing > 0) {
-        console.log(`There ${totalFieldsMissing === 1 ? 'was' : 'were'} ${totalFieldsMissing} fields in total that were present in the default object, but not in the users' objects. Filled them with default fields.`);
+        console.log(`There ${totalFieldsMissing === 1 ? 'was' : 'were'} ${totalFieldsMissing} field${totalFieldsMissing !== 1 ? 's' : ''} in total that were present in the default object, but not in the users' objects. Filled them with default fields.`);
     }
 }
 
@@ -249,6 +250,20 @@ function setJob(userID, job) {
         createEconomyEntryForUserID(userID);
     }
     economyData[userID].job = job;
+}
+
+function getLastCoinflipped(userID) {
+    if (!hasEconomyEntry(userID)) {
+        createEconomyEntryForUserID(userID);
+    }
+    return economyData[userID].lastCoinflipped;
+}
+
+function setLastCoinflipped(userID, lastCoinflipped) {
+    if (!hasEconomyEntry(userID)) {
+        createEconomyEntryForUserID(userID);
+    }
+    economyData[userID].lastCoinflipped = lastCoinflipped;
 }
 
 function readEconomyDataFromFile() {
@@ -458,7 +473,7 @@ client.on('interactionCreate', interaction => {
                     .setDescription(
                         `
                         You worked recently, you have to wait a bit!
-                        To be exact, you have to wait **${Math.floor((job.cooldown * 1000 - (Date.now() - getLastWorked(userID))) / 1000)}s**!
+                        To be exact, you have to wait **${Math.ceil((job.cooldown * 1000 - (Date.now() - getLastWorked(userID))) / 1000)}s**!
                         `
                     );
                     interaction.reply({embeds: [messageEmbed]});
@@ -550,17 +565,24 @@ client.on('interactionCreate', interaction => {
             break;
         }
         case 'coinflip': {
-            let money = interaction.options.getInteger('money');
-
-            if (money === 0) {
-                money = Math.floor(getBalanceFor(userID) / 2);
-            }
 
             const messageEmbed = new Discord.MessageEmbed()
             .setColor('#00FFFF')
             .setFooter(embedFooterData)
             .setAuthor(embedAuthorData)
             .setTitle('Coinflip')
+
+            if (Date.now() - getLastCoinflipped(userID) < 300000) {
+                messageEmbed.setDescription(`You have to wait **${Math.ceil(((300000 - (Date.now() - getLastCoinflipped(userID))) / 1000))}s** more to use this command again!`);
+                interaction.reply({embeds: [messageEmbed]});
+                return;
+            }
+
+            let money = interaction.options.getInteger('money');
+
+            if (money === 0) {
+                money = Math.floor(getBalanceFor(userID) / 2);
+            }
 
             let description = '';
 
@@ -603,6 +625,7 @@ client.on('interactionCreate', interaction => {
                 `
                 messageEmbed.setDescription(description);
                 interaction.reply({embeds: [messageEmbed]});
+                setLastCoinflipped(userID, Date.now());
                 return;
             }
 
