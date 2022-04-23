@@ -47,7 +47,7 @@ client.once('ready', () => {
 
     if (config.slashCommandTestingServer) {
         rest.put(
-            DiscordApiTypes.Routes.applicationGuildCommands(client.user.id, slashCommandTestingServer),
+            DiscordApiTypes.Routes.applicationGuildCommands(client.user.id, config.slashCommandTestingServer),
             { body: slashCommandsList },
         );
     } else {
