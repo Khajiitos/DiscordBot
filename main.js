@@ -5,12 +5,22 @@ const DiscordApiTypes = require('discord-api-types/v9');
 
 let config = {};
 
-try {
-    config = JSON.parse(fs.readFileSync('config.json'));
-} catch(e) {
-    console.log('config.json doesn\'t exist or isn\'t valid JSON!');
-    console.error(e);
-    process.exit(1);
+if (!fs.existsSync('config.json')) {
+    console.log('config.json doesn\'t exist, creating it');
+    config = {
+        token: "",
+        mobile: false,
+        slashCommandTestingServer: null
+    };
+    fs.writeFileSync('config.json', JSON.stringify(config, undefined, 2));
+} else {
+    try {
+        config = JSON.parse(fs.readFileSync('config.json'));
+    } catch(e) {
+        console.log('config.json isn\'t valid JSON!');
+        console.error(e);
+        process.exit(1);
+    }
 }
 
 if (config.token === '') {
@@ -35,10 +45,17 @@ module.exports = {client, slashCommandsList};
 client.once('ready', () => {
     console.log(`Logged in as ${client.user.username}#${client.user.discriminator}!`);
 
-	rest.put(
-		DiscordApiTypes.Routes.applicationCommands(client.user.id),
-		{ body: slashCommandsList },
-	);
+    if (config.slashCommandTestingServer) {
+        rest.put(
+            DiscordApiTypes.Routes.applicationGuildCommands(client.user.id, slashCommandTestingServer),
+            { body: slashCommandsList },
+        );
+    } else {
+        rest.put(
+            DiscordApiTypes.Routes.applicationCommands(client.user.id),
+            { body: slashCommandsList },
+        );
+    }
 });
 
 require('./tictactoe');
