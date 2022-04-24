@@ -22,7 +22,7 @@ const defaultUserEconomyData = {
     jobExperiences: { }
 };
 
-let economyData = { };
+let economyData = {};
 let jobs = [];
 
 function randomInteger(min, max) {
@@ -60,7 +60,7 @@ function createEconomyEntryForUserID(userID) {
     if (userID === undefined) {
         console.trace('Did you forget to add the userID to the arguments?');
     } else {
-        economyData[userID] = Object.create(defaultUserEconomyData);
+        economyData[userID] = JSON.parse(JSON.stringify(defaultUserEconomyData));
     }
 }
 
