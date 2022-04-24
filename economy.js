@@ -60,7 +60,7 @@ function createEconomyEntryForUserID(userID) {
     if (userID === undefined) {
         console.trace('Did you forget to add the userID to the arguments?');
     } else {
-        economyData[userID] = defaultUserEconomyData;
+        economyData[userID] = Object.create(defaultUserEconomyData);
     }
 }
 
