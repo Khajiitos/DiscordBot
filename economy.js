@@ -19,6 +19,9 @@ const defaultUserEconomyData = {
     lastWorked: 0,
     lastJobRefresh: 0,
     lastCoinflipped: 0,
+    lastRobbed: 0,
+    arrestedUntil: 0,
+    crimeExperience: 0,
     jobExperiences: { }
 };
 
@@ -266,6 +269,52 @@ function setLastCoinflipped(userID, lastCoinflipped) {
     economyData[userID].lastCoinflipped = lastCoinflipped;
 }
 
+function getCrimeExperience(userID) {
+    if (!hasEconomyEntry(userID)) {
+        createEconomyEntryForUserID(userID);
+    }
+    return economyData[userID].crimeExperience;
+}
+
+function addToCrimeExperience(userID, amount) {
+    if (!hasEconomyEntry(userID)) {
+        createEconomyEntryForUserID(userID);
+    }
+    economyData[userID].crimeExperience += amount;
+}
+
+function getArrestedUntil(userID) {
+    if (!hasEconomyEntry(userID)) {
+        createEconomyEntryForUserID(userID);
+    }
+    return economyData[userID].arrestedUntil;
+}
+
+function setArrestedUntil(userID, arrestedUntil) {
+    if (!hasEconomyEntry(userID)) {
+        createEconomyEntryForUserID(userID);
+    }
+    economyData[userID].arrestedUntil = arrestedUntil;
+}
+
+function isArrested(userID) {
+    return getArrestedUntil(userID) > Date.now();
+}
+
+function getLastRobbed(userID) {
+    if (!hasEconomyEntry(userID)) {
+        createEconomyEntryForUserID(userID);
+    }
+    return economyData[userID].lastRobbed;
+}
+
+function setLastRobbed(userID, lastRobbed) {
+    if (!hasEconomyEntry(userID)) {
+        createEconomyEntryForUserID(userID);
+    }
+    economyData[userID].lastRobbed = lastRobbed;
+}
+
 function readEconomyDataFromFile() {
 
     fs.readFile('economydata.json', (errno, data) => {
@@ -341,6 +390,33 @@ client.on('interactionCreate', interaction => {
 
     const embedAuthorData = {name: interaction.user.username, iconURL: interaction.user.avatarURL()};
     const userID = interaction.user.id;
+
+    if (isArrested(userID)) {
+        const disallowedCommands = [
+            'work',
+            'jobapply',
+            'coinflip',
+            'shop',
+            'rob'
+        ];
+
+        if (disallowedCommands.some(command => command === interaction.commandName)) {
+            const messageEmbed = new Discord.MessageEmbed()
+            .setColor('#00FFFF')
+            .setFooter(embedFooterData)
+            .setAuthor(embedAuthorData)
+            .setTitle('Arrested')
+            .setDescription(
+            `
+            You're arrested!
+            You can't use this command yet!
+
+            You'll be freed in **${Math.ceil((getArrestedUntil(userID) - Date.now()) / 1000)}s**.
+            `);
+            interaction.reply({embeds: [messageEmbed]});
+            return;
+        }
+    }
 
     switch(interaction.commandName) {
         case 'balance':
@@ -668,6 +744,92 @@ client.on('interactionCreate', interaction => {
             interaction.reply({embeds: [messageEmbed]});
             break;
         }
+        case 'rob': {
+
+            if (Date.now() - getLastRobbed(userID) < 300000) {
+                const messageEmbed = new Discord.MessageEmbed()
+                .setColor('#00FFFF')
+                .setFooter(embedFooterData)
+                .setAuthor(embedAuthorData)
+                .setTitle('Robbery')
+                .setDescription(
+                `
+                You have to wait **${Math.ceil((300000 - (Date.now() - getLastRobbed(userID))) / 1000)}s** before using this command again!
+                `);
+                interaction.reply({embeds: [messageEmbed]});
+                return;
+            }
+
+            const crimeExperience = getCrimeExperience(userID);
+            let successChance = Math.floor(33 + Math.min(crimeExperience, 33));
+
+            const messageEmbed = new Discord.MessageEmbed()
+            .setColor('#00FFFF')
+            .setFooter(embedFooterData)
+            .setAuthor(embedAuthorData)
+            .setTitle('Robbery')
+
+            let description = '';
+
+            if (randomInteger(1, 100) <= successChance) {
+                let moneyAmount = randomInteger(10, 25);
+                moneyAmount += Math.floor((crimeExperience / 5));
+
+                addToBalance(userID, moneyAmount);
+                addToCrimeExperience(userID, 1);
+                
+                description +=
+                `
+                You successfully robbed someone!
+                You gained ${moneyAmount} :coin:!
+
+                +1 Crime XP (total: ${getCrimeExperience(userID)})
+
+                You'll be able to use this command again in **300s**.
+                `;
+
+                messageEmbed.setDescription(
+                    `
+                    You successfully robbed someone!
+                    You gained ${moneyAmount} :coin:!
+    
+                    +1 Crime XP (total: ${getCrimeExperience(userID)} XP)
+    
+                    You'll be able to use this command again in **300s**.`
+                );
+                interaction.reply({embeds: [messageEmbed]});
+            } else {
+                const escaped = randomInteger(0, 1) === 0;
+
+                if (escaped) {
+                    messageEmbed.setDescription(
+                    `
+                    You failed to rob someone.
+                    Luckily you escaped, so you won't face any consequences.
+    
+                    You'll be able to use this command again in **300s**.`
+                    );
+                    interaction.reply({embeds: [messageEmbed]});
+                } else {
+                    messageEmbed.setDescription(
+                    `
+                    You failed to rob someone.
+                    You got arrested for **600s**.
+                    ${hasJob(userID) ? 'Also you got fired from your job.\n' : ''}
+                    How depressing!
+                    `);
+                    interaction.reply({embeds: [messageEmbed]});
+                    setArrestedUntil(userID, Date.now() + 600000);
+                    setJob(userID, null);
+                }
+            }
+            setLastRobbed(userID, Date.now());
+            break;
+        }
+        case 'shop': {
+            interaction.reply('later');
+            break;
+        }
     }
 });
 
@@ -736,4 +898,16 @@ slashCommandsList.push(
     new Builders.SlashCommandBuilder()
     .setName('baltop')
     .setDescription('Views the richest players')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('shop')
+    .setDescription('Opens the shop')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('rob')
+    .setDescription('Robs a stranger')
 );
