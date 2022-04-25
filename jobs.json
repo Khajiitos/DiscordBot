@@ -58,5 +58,125 @@
         "chanceOfGettingFired": 10,
         "minRequiredWorkExperience": 0,
         "rarity": 0
+    },
+    {
+        "name": "Traver consultant",
+        "minBaseSalary": 7,
+        "maxBaseSalary": 8,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 0,
+        "rarity": 0
+    },
+    {
+        "name": "Electrician",
+        "minBaseSalary": 8,
+        "maxBaseSalary": 11,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 15,
+        "rarity": 2
+    },
+    {
+        "name": "Software developer",
+        "minBaseSalary": 12,
+        "maxBaseSalary": 15,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 25,
+        "rarity": 3
+    },
+    {
+        "name": "Computer hardware enginner",
+        "minBaseSalary": 12,
+        "maxBaseSalary": 15,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 25,
+        "rarity": 3
+    },
+    {
+        "name": "Massage therapist",
+        "minBaseSalary": 9,
+        "maxBaseSalary": 12,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 8,
+        "rarity": 1
+    },
+    {
+        "name": "Dietitian",
+        "minBaseSalary": 10,
+        "maxBaseSalary": 14,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 12,
+        "rarity": 2
+    },
+    {
+        "name": "Barber",
+        "minBaseSalary": 7,
+        "maxBaseSalary": 10,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 6,
+        "rarity": 1
+    },
+    {
+        "name": "Dentist",
+        "minBaseSalary": 14,
+        "maxBaseSalary": 18,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 30,
+        "rarity": 3
+    },
+    {
+        "name": "Surgeon",
+        "minBaseSalary": 15,
+        "maxBaseSalary": 20,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 35,
+        "rarity": 3
+    },
+    {
+        "name": "Data scientist",
+        "minBaseSalary": 10,
+        "maxBaseSalary": 15,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 15,
+        "rarity": 2
+    },
+    {
+        "name": "Veterinarian",
+        "minBaseSalary": 11,
+        "maxBaseSalary": 16,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 20,
+        "rarity": 2
+    },
+    {
+        "name": "Cardiologist",
+        "minBaseSalary": 20,
+        "maxBaseSalary": 24,
+        "minCooldown": 60,
+        "maxCooldown": 90,
+        "chanceOfGettingFired": 10,
+        "minRequiredWorkExperience": 40,
+        "rarity": 3
     }
 ]
