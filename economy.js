@@ -118,7 +118,6 @@ function generateAvailableJobs(userID) {
         const randTicket = randomInteger(1, totalTickets);
         let ticketsPassed = 1;
         for (let job of jobsPossible) {
-            // check if randTicket in range of ticketsPassed and ticketsPassed + rarityTickets[job.rarity]
             if (randTicket >= ticketsPassed && randTicket <= ticketsPassed + rarityTickets[job.rarity]) {
                 economyData[userID].availableJobs.push({
                     name: job.name,
@@ -826,6 +825,109 @@ client.on('interactionCreate', interaction => {
             setLastRobbed(userID, Date.now());
             break;
         }
+        case 'lawyer': {
+            const user = interaction.options.getUser('user');
+            const maxPrice = interaction.options.getInteger('maxprice', false);
+
+            const messageEmbed = new Discord.MessageEmbed()
+            .setColor('#00FFFF')
+            .setFooter(embedFooterData)
+            .setAuthor(embedAuthorData)
+            .setTitle('Lawyer')
+
+            if ((user && (!hasEconomyEntry(user.id) || !isArrested(user.id))) || !isArrested(userID)) {
+                messageEmbed.setDescription(
+                user ?
+                `
+                This person is not arrested!
+                `
+                :
+                `
+                You are not arrested!
+                `);
+                interaction.reply({embeds: [messageEmbed]});
+                return;
+            }
+
+            if (maxPrice === 0 || getBalanceFor(userID) === 0) {
+                messageEmbed.setDescription(
+                `
+                    Are you serious?
+                    What are you trying to do with these 0 :coin: of yours?
+                    Buy a lawyer?
+                `);
+                interaction.reply({embeds: [messageEmbed]});
+                return;
+            }
+
+            if (maxPrice < 0) {
+                messageEmbed.setDescription(
+                `
+                    Buying a lawyer costs money.
+                    Negative amount of money is no money.
+                    It's not like you're gonna get a lawyer for free.
+                    You tryna cheat the system by putting the max price as negative.
+                    No, you're not gonna get money this way.
+                    Why don't you work or something to earn some money?
+                    That way you can stop doing stuff like this.
+                    I hope you're not going to try to put max price as negative again.
+                    Will you?
+                    Please don't.
+                `);
+                interaction.reply({embeds: [messageEmbed]});
+                return;
+            }
+
+            const arrestedSeconds = Math.ceil((getArrestedUntil(user ? user.id : userID) - Date.now()) / 1000);
+            const coinsSpent = Math.min(maxPrice !== null ? maxPrice : Infinity, getBalanceFor(userID), Math.ceil(arrestedSeconds / 10));
+            const releasedFromArrest = coinsSpent * 10 >= arrestedSeconds;
+
+            removeFromBalance(userID, coinsSpent);
+
+            if (user) {
+                if (releasedFromArrest) {
+                    messageEmbed.setDescription(
+                    `
+                        You spent ${coinsSpent} :coin: to buy a lawyer for **${user.username}**.
+                        Thanks to you, **${user.username}** was released from arrest **${arrestedSeconds}s** earlier.
+
+                        Your current balance: **${getBalanceFor(userID)} :coin:**
+                    `
+                    );
+                } else {
+                    messageEmbed.setDescription(
+                    `
+                        You spent ${coinsSpent} :coin: to buy a lawyer for **${user.username}**.
+                        **${user.username}** will be released from arrest **${coinsSpent * 10}s** earlier.
+    
+                        Your current balance: **${getBalanceFor(userID)} :coin:**
+                    `
+                    );
+                }
+            } else {
+                if (releasedFromArrest) {
+                    messageEmbed.setDescription(
+                    `
+                        You spent ${coinsSpent} :coin: to buy a lawyer for yourself.
+                        You were released from arrest **${arrestedSeconds}s** earlier.
+
+                        Your current balance: **${getBalanceFor(userID)} :coin:**
+                    `
+                    );
+                } else {
+                    messageEmbed.setDescription(
+                    `
+                        You spent ${coinsSpent} :coin: to buy a lawyer for yourself.
+                        You will be released from arrest **${coinsSpent * 10}s** earlier.
+    
+                        Your current balance: **${getBalanceFor(userID)} :coin:**
+                    `
+                    );
+                }
+            }
+            interaction.reply({embeds: [messageEmbed]});
+            break;
+        }
         case 'shop': {
             interaction.reply('later');
             break;
@@ -910,4 +1012,21 @@ slashCommandsList.push(
     new Builders.SlashCommandBuilder()
     .setName('rob')
     .setDescription('Robs a stranger')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('lawyer')
+    .setDescription('Buys a lawyer to release you or another person from arrest (1 coin - 10s)')
+    .addUserOption(option =>
+        option
+        .setName('user')
+        .setDescription('User you\'re buying a lawyer for (leave empty if for yourself)')
+    )
+    .addIntegerOption(option =>
+        option
+        .setName('maxprice')
+        .setDescription('Max amount of coins you\'re willing to spend on a lawyer')
+        .setMinValue(0) // this doesn't work
+    )
 );
