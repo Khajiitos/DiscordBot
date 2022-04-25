@@ -883,6 +883,7 @@ client.on('interactionCreate', interaction => {
             const releasedFromArrest = coinsSpent * 10 >= arrestedSeconds;
 
             removeFromBalance(userID, coinsSpent);
+            setArrestedUntil(user ? user.id : userID, getArrestedUntil(user ? user.id : userID) - (coinsSpent * 10000));
 
             if (user) {
                 if (releasedFromArrest) {
