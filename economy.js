@@ -661,7 +661,12 @@ client.on('interactionCreate', interaction => {
 
             let description = '';
 
-            if (money > getBalanceFor(userID)) {
+            if (money < 0) {
+                description =
+                `
+                You can't gamble air!
+                `
+            } else if (money > getBalanceFor(userID)) {
                 description =
                 `
                 You don't have this much money!
