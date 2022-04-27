@@ -929,6 +929,49 @@ client.on('interactionCreate', interaction => {
             interaction.reply({embeds: [messageEmbed]});
             break;
         }
+        case 'cooldowns': {
+            const messageEmbed = new Discord.MessageEmbed()
+            .setColor('#00FFFF')
+            .setFooter(embedFooterData)
+            .setAuthor(embedAuthorData)
+            .setTitle('Cooldowns')
+
+            let description = '';
+
+            const arrestedUntil = getArrestedUntil(userID);
+
+            const lastWorked = getLastWorked(userID);
+            const job = getJob(userID);
+            const workCooldown = job ? job.cooldown : -1;
+
+            const lastRobbed = getLastRobbed(userID);
+            const lastCoinflipped = getLastCoinflipped(userID);
+            const lastJobRefresh = getLastJobRefresh(userID);
+
+            if (isArrested(userID)) {
+                description += `Arrested for: **${Math.ceil((arrestedUntil - Date.now()) / 1000)}s**\n`;
+            }
+            if (Date.now() - lastWorked < workCooldown * 1000) {
+                description += `Work cooldown: **${Math.ceil((workCooldown * 1000 - (Date.now() - lastWorked)) / 1000)}s**\n`
+            }
+            if (Date.now() - lastRobbed < 300000) {
+                description += `Rob cooldown: **${Math.ceil((300000 - (Date.now() - lastRobbed)) / 1000)}s**\n`;
+            }
+            if (Date.now() - lastCoinflipped < 300000) {
+                description += `Coinflip cooldown: **${Math.ceil((300000 - (Date.now() - lastCoinflipped)) / 1000)}s**\n`;
+            }
+            if (Date.now() - lastJobRefresh < 600000) {
+                description += `Job refresh cooldown: **${Math.ceil((600000 - (Date.now() - lastJobRefresh)) / 1000)}s**`;
+            }
+
+            if (description === '') {
+                description = 'You don\'t have any cooldowns.';
+            }
+
+            messageEmbed.setDescription(description);
+            interaction.reply({embeds: [messageEmbed]});
+            break;
+        }
         case 'shop': {
             interaction.reply('later');
             break;
@@ -1030,4 +1073,10 @@ slashCommandsList.push(
         .setDescription('Max amount of coins you\'re willing to spend on a lawyer')
         .setMinValue(0) // this doesn't work
     )
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('cooldowns')
+    .setDescription('Views your cooldowns')
 );
