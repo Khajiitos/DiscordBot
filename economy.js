@@ -314,6 +314,13 @@ function setLastRobbed(userID, lastRobbed) {
     economyData[userID].lastRobbed = lastRobbed;
 }
 
+function getFireChanceReductionIn(userID, jobName) {
+    if (!hasEconomyEntry(userID)) {
+        createEconomyEntryForUserID(userID);
+    }
+    return Math.floor(getJobExperienceIn(userID, jobName) / 3) / 10;
+}
+
 function readEconomyDataFromFile() {
 
     fs.readFile('economydata.json', (errno, data) => {
@@ -433,6 +440,8 @@ client.on('interactionCreate', interaction => {
         }
         case 'job': {
             if (hasJob(userID)) {
+                const job = getJob(userID);
+                const fireChanceReduction = getFireChanceReductionIn(userID, job.name);
                 const messageEmbed = new Discord.MessageEmbed()
                 .setColor('#00FFFF')
                 .setFooter(embedFooterData)
@@ -440,10 +449,10 @@ client.on('interactionCreate', interaction => {
                 .setTitle('Your job')
                 .setDescription(
                     `
-                    **Job name:** ${getJob(userID).name}
-                    **Salary:** ${getJob(userID).baseSalary} :coin:
-                    **Chance of getting fired after work:** ${getJob(userID).chanceOfGettingFired}%
-                    **You can work every:** ${getJob(userID).cooldown}s
+                    **Job name:** ${job.name}
+                    **Salary:** ${job.baseSalary} :coin:
+                    **Chance of getting fired after work:** ${job.chanceOfGettingFired}% ${fireChanceReduction > 0 ? `*-${fireChanceReduction}%*` : ''}
+                    **You can work every:** ${job.cooldown}s
                     `);
                 interaction.reply({embeds: [messageEmbed]});
             } else {
@@ -468,11 +477,12 @@ client.on('interactionCreate', interaction => {
                 for (let i = 0; i < jobs.length; i++) {
                     const job = jobs[i];
                     const xp = getJobExperienceIn(userID, job.name);
+                    const fireChanceReduction = getFireChanceReductionIn(userID, job.name);
                     description += `
                     **${job.name} (ID: ${i}${xp > 0 ? `, XP: ${xp}` : ''})**
                     **Salary:** ${job.baseSalary} :coin:
                     **Can work every:** ${job.cooldown}s
-                    **Chance of getting fired:** ${job.chanceOfGettingFired}%\n`
+                    **Chance of getting fired:** ${job.chanceOfGettingFired}% ${fireChanceReduction > 0 ? `*-${fireChanceReduction}%*` : ''}\n`
                 }
 
                 description += `
@@ -566,8 +576,8 @@ client.on('interactionCreate', interaction => {
                 +1 ${job.name} XP (total: ${getJobExperienceIn(userID, job.name)})
                 Total work experience: ${getTotalJobExperience(userID)}
                 `;
-                const int = randomInteger(1, 100);
-                if (int <= job.chanceOfGettingFired) {
+                const int = randomInteger(1, 1000);
+                if (int <= job.chanceOfGettingFired * 10 - getFireChanceReductionIn(userID, job.name) * 10) {
                     description += 
                     `
                     You kinda sucked during your work today. As a result, you got fired.
