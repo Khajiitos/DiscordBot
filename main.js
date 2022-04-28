@@ -10,7 +10,8 @@ if (!fs.existsSync('config.json')) {
     config = {
         token: "",
         mobile: false,
-        slashCommandTestingServer: null
+        slashCommandTestingServer: null,
+        customStatus: null
     };
     fs.writeFileSync('config.json', JSON.stringify(config, undefined, 2));
 } else {
@@ -55,6 +56,17 @@ client.once('ready', () => {
             DiscordApiTypes.Routes.applicationCommands(client.user.id),
             { body: slashCommandsList },
         );
+    }
+
+    if (config.customStatus) {
+        client.user.setPresence({
+            activities: [
+                {
+                    name: config.customStatus,
+                    type: 'PLAYING'
+                }
+            ]
+        });
     }
 });
 
