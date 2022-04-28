@@ -484,12 +484,11 @@ client.on('interactionCreate', interaction => {
                     **Can work every:** ${job.cooldown}s
                     **Chance of getting fired:** ${job.chanceOfGettingFired}% ${fireChanceReduction > 0 ? `*-${fireChanceReduction}%*` : ''}\n`
                 }
-
                 description += `
                 To apply for a job, simply use the command **/jobapply [ID]**!
 
                 You can refresh this page using the **/refreshjobs** command!
-                ${(Date.now() - getLastJobRefresh(userID) > 600000) ? 'You can use it every 10 minutes!' : 'You can use it every 10 minutes, you used it recently so you have to wait!'}
+                ${(Date.now() - getLastJobRefresh(userID) > 600000) ? 'You can use it every 10 minutes!' : `You'll be able to use it again in **${Math.ceil((600000 - (Date.now() - getLastJobRefresh(userID))) / 1000)}s**!`}
                 `;
 
                 const messageEmbed = new Discord.MessageEmbed()
@@ -509,7 +508,7 @@ client.on('interactionCreate', interaction => {
                     `
                     There are no jobs available for you!
                     You can refresh this page using the **/refreshjobs** command!
-                    ${(Date.now() - getLastJobRefresh(userID) > 600000) ? 'You can use it every 10 minutes!' : 'You can use it every 10 minutes, you used it recently so you have to wait!'}
+                    ${(Date.now() - getLastJobRefresh(userID) > 600000) ? 'You can use it every 10 minutes!' : `You'll be able to use it again in **${Math.ceil((600000 - (Date.now() - getLastJobRefresh(userID))) / 1000)}s**!`}
                     `);
                 interaction.reply({embeds: [messageEmbed]});
             }
@@ -519,16 +518,30 @@ client.on('interactionCreate', interaction => {
             if (Date.now() - getLastJobRefresh(userID) > 600000) {
                 setLastJobRefresh(userID, Date.now());
                 generateAvailableJobs(userID);
+                const jobs = getAvailableJobs(userID);
                 const messageEmbed = new Discord.MessageEmbed()
                 .setColor('#00FFFF')
                 .setFooter(embedFooterData)
                 .setAuthor(embedAuthorData)
                 .setTitle('Job list refresh')
-                .setDescription(
-                `
-                Refreshed the job list!
-                Now, use the **/jobs** command to view the list!
-                `);
+
+                let description = `Refreshed your job list!\n**Your total work experience:** ${getTotalJobExperience(userID)} XP\n`;
+                if (jobs.length !== 0) {
+                    for (let i = 0; i < jobs.length; i++) {
+                        const job = jobs[i];
+                        const xp = getJobExperienceIn(userID, job.name);
+                        const fireChanceReduction = getFireChanceReductionIn(userID, job.name);
+                        description += `
+                        **${job.name} (ID: ${i}${xp > 0 ? `, XP: ${xp}` : ''})**
+                        **Salary:** ${job.baseSalary} :coin:
+                        **Can work every:** ${job.cooldown}s
+                        **Chance of getting fired:** ${job.chanceOfGettingFired}% ${fireChanceReduction > 0 ? `*-${fireChanceReduction}%*` : ''}\n`
+                    }
+                } else {
+                    description += 'There are no jobs available for you!\n'
+                }
+                description += '\nYou\'ll be able to use this command again in 10 minutes!';
+                messageEmbed.setDescription(description);
                 interaction.reply({embeds: [messageEmbed]});
             } else {
                 const messageEmbed = new Discord.MessageEmbed()
@@ -538,8 +551,10 @@ client.on('interactionCreate', interaction => {
                 .setTitle('Job list refresh')
                 .setDescription(
                 `
-                You used this command recently so you have to wait!
-                `);
+                You used this command recently!
+                You'll be able to use it again in **${Math.ceil((600000 - (Date.now() - getLastJobRefresh(userID))) / 1000)}s**!
+                `
+                );
                 interaction.reply({embeds: [messageEmbed]});
             }
             break;
