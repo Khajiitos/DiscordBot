@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const Builders = require('@discordjs/builders');
-const { client, slashCommandsList } = require('./main');
+const { client, slashCommandsList, config } = require('./main');
 const fs = require('fs');
 
 const embedFooterData = {text: 'Economy bot by Khajiitos#5835', iconURL: 'https://cdn.discordapp.com/avatars/408330424562089984/9a944c01c8b129b05d74b7e4ec72c901.webp'};
@@ -376,7 +376,9 @@ client.on('messageCreate', (message) => {
         return;
     }
 
-    // This will be removed btw
+    if (!config.owners.includes(message.author.id)) {
+        return;
+    }
 
     switch(dividedMessage[0]) {
         case '!debugdata': {

@@ -5,15 +5,17 @@ const DiscordApiTypes = require('discord-api-types/v9');
 
 let config = {};
 
+const defaultConfig = {
+    token: "",
+    mobile: false,
+    slashCommandTestingServer: null,
+    customStatus: null,
+    owners: []
+};
+
 if (!fs.existsSync('config.json')) {
     console.log('config.json doesn\'t exist, creating it');
-    config = {
-        token: "",
-        mobile: false,
-        slashCommandTestingServer: null,
-        customStatus: null
-    };
-    fs.writeFileSync('config.json', JSON.stringify(config, undefined, 2));
+    fs.writeFileSync('config.json', JSON.stringify(defaultConfig, undefined, 2));
 } else {
     try {
         config = JSON.parse(fs.readFileSync('config.json'));
@@ -22,6 +24,18 @@ if (!fs.existsSync('config.json')) {
         console.error(e);
         process.exit(1);
     }
+}
+
+let rewriteConfig = false;
+for (let field of Object.keys(defaultConfig)) {
+    if (typeof config[field] === 'undefined') {
+        config[field] = defaultConfig[field];
+        rewriteConfig = true;
+    }
+}
+
+if (rewriteConfig) {
+    fs.writeFileSync('config.json', JSON.stringify(config, undefined, 2));
 }
 
 if (config.token === '') {
@@ -41,7 +55,7 @@ const ws = config.mobile == true ? { properties: { $browser: 'Discord Android' }
 const client = new Discord.Client({intents: intents, ws: ws});
 const slashCommandsList = [];
 
-module.exports = {client, slashCommandsList};
+module.exports = {client, slashCommandsList, config};
 
 client.once('ready', () => {
     console.log(`Logged in as ${client.user.username}#${client.user.discriminator}!`);
@@ -91,7 +105,7 @@ client.on('messageCreate', message => {
             break;
         }
         case "!jseval": {
-            if (message.author.id == '408330424562089984') {
+            if (config.owners.includes(message.author.id)) {
                 try {
                     const code = dividedMessage.slice(1).join(' ');
                     let ret = String(eval(code));
