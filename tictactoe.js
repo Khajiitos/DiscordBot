@@ -49,7 +49,7 @@ class TicTacToeGame {
         if (this.turn === false) {
             setTimeout(() => {
 
-                const selection = thisgame.findRandomEmptyField();
+                const selection = thisgame.pickEmptyField();
                 if (selection == -1)
                     return;
 
@@ -107,9 +107,32 @@ class TicTacToeGame {
         this.updateMessage();
     }
 
-    findRandomEmptyField() {
+    pickEmptyField() {
+
+        for (let i = 0; i < 9; i++) {
+            if (this.board[i] != 0)
+                continue;
+            this.board[i] = 2;
+            let winnerCheck = this.winnerCheck();
+            this.board[i] = 0;
+            if (winnerCheck == 2) {
+                return i;
+            }
+        }
+
+        for (let i = 0; i < 9; i++) {
+            if (this.board[i] != 0)
+                continue;
+            this.board[i] = 1;
+            let winnerCheck = this.winnerCheck();
+            this.board[i] = 0;
+            if (winnerCheck == 1) {
+                return i;
+            }
+        }
+
         let fields = [];
-        for (let i = 0; i < 9; i++){
+        for (let i = 0; i < 9; i++) {
             if (this.board[i] == 0)
                 fields.push(i);
         }
@@ -284,7 +307,7 @@ client.on('interactionCreate', interaction => {
             if (games[interaction.user.id] && !games[interaction.user.id].gameOver) {
                 setTimeout(() => {
 
-                    const selection = games[interaction.user.id].findRandomEmptyField();
+                    const selection = games[interaction.user.id].pickEmptyField();
                     if (selection === -1)
                         return;
 
