@@ -5,6 +5,8 @@ const fs = require('fs');
 
 let timeout = null;
 
+let userPresences = {};
+
 function msToNextFullMinute() {
     const date = new Date();
     return 60000 - ((date.getSeconds() * 1000) + date.getMilliseconds());
@@ -168,6 +170,29 @@ client.on('interactionCreate', interaction => {
 
 client.once('ready', () => {
     timeout = setTimeout(update, msToNextFullMinute());
+});
+
+client.on('presenceUpdate', (oldPresence, newPresence) => {
+    if (!fs.existsSync('statusdataexperimental/')){
+        fs.mkdirSync('statusdataexperimental/');
+    }
+
+    const presenceStatusObj = {
+        status: newPresence.status,
+        clientStatus: newPresence.clientStatus
+    };
+
+    if (typeof userPresences[newPresence.userId] !== 'undefined' && JSON.stringify(presenceStatusObj) === JSON.stringify(userPresences[newPresence.userId])) {
+        // newPresence has the same status as we already know, so this is a duplicate
+        return;
+    } else {
+        userPresences[newPresence.userId] = presenceStatusObj;
+    }
+
+    let buffer = new Buffer.allocUnsafe(5);
+    buffer.writeUInt32BE(Math.floor(Date.now() / 1000));
+    buffer.write(newPresence.userId, 4);
+    fs.appendFile(`statusdataexperimental/${newPresence.userId}`, buffer, () => {});
 });
 
 slashCommandsList.push(

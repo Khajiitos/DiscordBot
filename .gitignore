@@ -1,6 +1,7 @@
 config.json
 node_modules/*
 statusdata/*
+statusdataexperimental/*
 bot.js
 namedictionary.txt
 economydata.json
