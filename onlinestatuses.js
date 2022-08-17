@@ -191,7 +191,7 @@ client.on('presenceUpdate', (oldPresence, newPresence) => {
 
     let buffer = new Buffer.allocUnsafe(5);
     buffer.writeUInt32BE(Math.floor(Date.now() / 1000));
-    buffer.write(newPresence.userId, 4);
+    buffer.write(presenceToChar(newPresence), 4);
     fs.appendFile(`statusdataexperimental/${newPresence.userId}`, buffer, () => {});
 });
 
