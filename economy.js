@@ -59,6 +59,39 @@ function validateAllFieldsPresentInEconomyData() {
     }
 }
 
+function getInGameTime() {
+    const date = new Date();
+    // minutes into the day
+    const timeOfDay = Math.floor((date.getMinutes() * 60 + date.getSeconds()) * 0.4);
+    return {
+        time: timeOfDay,
+        hour: Math.floor(timeOfDay / 60),
+        minute: timeOfDay % 60,
+        as12hString: function() {
+            let am = true;
+            let hour = this.hour;
+            if (hour == 0) {
+                am = true;
+                hour = 12;
+            } else if (hour == 12) {
+                am = false;
+                hour = 12;
+            } else if (hour > 12) {
+                am = false;
+                hour = hour - 12;
+            }
+            return `${hour}:${this.padWithZero(this.minute)} ${am ? 'AM' : 'PM'}`;
+        },
+        as24hString: function() {
+            return `${this.padWithZero(this.hour)}:${this.padWithZero(this.minute)} ${am ? 'AM' : 'PM'}`;
+        },
+        padWithZero: (number) => {
+            if (number >= 10) return number;
+            return '0' + number;
+        }
+    }
+}
+
 function createEconomyEntryForUserID(userID) {
     if (userID === undefined) {
         console.trace('Did you forget to add the userID to the arguments?');
@@ -800,24 +833,12 @@ client.on('interactionCreate', interaction => {
             .setAuthor(embedAuthorData)
             .setTitle('Robbery')
 
-            let description = '';
-
             if (randomInteger(1, 100) <= successChance) {
                 let moneyAmount = randomInteger(10, 25);
                 moneyAmount += Math.floor((crimeExperience / 5));
 
                 addToBalance(userID, moneyAmount);
                 addToCrimeExperience(userID, 1);
-                
-                description +=
-                `
-                You successfully robbed someone!
-                You gained ${moneyAmount} :coin:!
-
-                +1 Crime XP (total: ${getCrimeExperience(userID)})
-
-                You'll be able to use this command again in **300s**.
-                `;
 
                 messageEmbed.setDescription(
                     `
@@ -1008,6 +1029,14 @@ client.on('interactionCreate', interaction => {
             interaction.reply('later');
             break;
         }
+        case 'time': {
+            const messageEmbed = new Discord.MessageEmbed()
+            .setColor('#00FFFF')
+            .setTitle('Time')
+            .setDescription(`The time is: ${getInGameTime().as12hString()}`)
+
+            interaction.reply({embeds: [messageEmbed]});
+        }
     }
 });
 
@@ -1111,4 +1140,10 @@ slashCommandsList.push(
     new Builders.SlashCommandBuilder()
     .setName('cooldowns')
     .setDescription('Views your cooldowns')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('time')
+    .setDescription('Views the current in-game time')
 );
