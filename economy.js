@@ -826,6 +826,25 @@ client.on('interactionCreate', interaction => {
 
             const crimeExperience = getCrimeExperience(userID);
             let successChance = Math.floor(33 + Math.min(crimeExperience, 33));
+            const time = getInGameTime();
+
+            /*
+            From 12:00 AM to 4:00 AM there will be a 10% success bonus.
+            From 10:00 PM to 12:00 AM the bonus will gradually increase from 0% to 10%.
+            From 4:00 AM to 6:00 AM the bonus will gradually decrease from 10% to 0%.
+            With precision of 1%.
+            */
+
+            // gl understanding this code 
+            if (time.time > 22*60) {
+                successChance += Math.floor(10 * (1 - ((1 / (24*60 - 22*60)) * (24*60 - time.time))));
+            } else if (time.time < 6*60) {
+                if (time.time < 4*60) {
+                    successChance += 10;
+                } else {
+                    successChance += 10 - Math.floor(10 * (1 - ((1 / (6*60 - 4*60)) * (6*60 - time.time))));
+                }
+            }
 
             const messageEmbed = new Discord.MessageEmbed()
             .setColor('#00FFFF')
@@ -1031,11 +1050,11 @@ client.on('interactionCreate', interaction => {
             .setTitle('Shop')
             const time = getInGameTime();
             if (time.hour < 6 || time.hour >= 22) {
-                messageEmbed.setDescription(`The shop is closed!\nIt's open between 6:00 AM and 10:00 PM.\nIt's currently ${time.as12hString()}`);
+                messageEmbed.setDescription(`The shop is closed!\nIt's open between 6:00 AM and 10:00 PM.\nIt's currently ${time.as12hString()}.`);
                 interaction.reply({embeds: [messageEmbed]});
                 break;
             }
-            
+
             interaction.reply({embeds: [messageEmbed]});
             break;
         }
