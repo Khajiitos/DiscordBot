@@ -1026,7 +1026,17 @@ client.on('interactionCreate', interaction => {
             break;
         }
         case 'shop': {
-            interaction.reply('later');
+            const messageEmbed = new Discord.MessageEmbed()
+            .setColor('#00FFFF')
+            .setTitle('Shop')
+            const time = getInGameTime();
+            if (time.hour < 6 || time.hour >= 22) {
+                messageEmbed.setDescription(`The shop is closed!\nIt's open between 6:00 AM and 10:00 PM.\nIt's currently ${time.as12hString()}`);
+                interaction.reply({embeds: [messageEmbed]});
+                break;
+            }
+            
+            interaction.reply({embeds: [messageEmbed]});
             break;
         }
         case 'time': {
