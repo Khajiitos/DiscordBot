@@ -432,6 +432,8 @@ client.on('interactionCreate', interaction => {
     const embedAuthorData = {name: interaction.user.username, iconURL: interaction.user.avatarURL()};
     const userID = interaction.user.id;
 
+    const messageEmbed = new Discord.MessageEmbed().setColor('#00FFFF');
+
     if (isArrested(userID)) {
         const disallowedCommands = [
             'work',
@@ -442,8 +444,7 @@ client.on('interactionCreate', interaction => {
         ];
 
         if (disallowedCommands.some(command => command === interaction.commandName)) {
-            const messageEmbed = new Discord.MessageEmbed()
-            .setColor('#00FFFF')
+            messageEmbed
             .setFooter(embedFooterData)
             .setAuthor(embedAuthorData)
             .setTitle('Arrested')
@@ -462,7 +463,7 @@ client.on('interactionCreate', interaction => {
     switch(interaction.commandName) {
         case 'balance':
         case 'money': {
-            const messageEmbed = new Discord.MessageEmbed()
+            messageEmbed
             .setColor('#00FFFF')
             .setFooter(embedFooterData)
             .setAuthor(embedAuthorData)
@@ -470,15 +471,13 @@ client.on('interactionCreate', interaction => {
                 `
                 Your balance: ${getBalanceFor(userID)} :coin:
                 `);
-            interaction.reply({embeds: [messageEmbed]});
             break;
         }
         case 'job': {
             if (hasJob(userID)) {
                 const job = getJob(userID);
                 const fireChanceReduction = getFireChanceReductionIn(userID, job.name);
-                const messageEmbed = new Discord.MessageEmbed()
-                .setColor('#00FFFF')
+                messageEmbed
                 .setFooter(embedFooterData)
                 .setAuthor(embedAuthorData)
                 .setTitle('Your job')
@@ -489,10 +488,8 @@ client.on('interactionCreate', interaction => {
                     **Chance of getting fired after work:** ${job.chanceOfGettingFired}% ${fireChanceReduction > 0 ? `*-${fireChanceReduction}%*` : ''}
                     **You can work every:** ${job.cooldown}s
                     `);
-                interaction.reply({embeds: [messageEmbed]});
             } else {
-                const messageEmbed = new Discord.MessageEmbed()
-                .setColor('#00FFFF')
+                messageEmbed
                 .setFooter(embedFooterData)
                 .setAuthor(embedAuthorData)
                 .setDescription(
@@ -500,7 +497,6 @@ client.on('interactionCreate', interaction => {
                     You don't have a job!
                     You can view your available jobs using the **/jobs** command!
                     `);
-                interaction.reply({embeds: [messageEmbed]});
             }
             break;
         }
@@ -526,16 +522,13 @@ client.on('interactionCreate', interaction => {
                 ${(Date.now() - getLastJobRefresh(userID) > 600000) ? 'You can use it every 10 minutes!' : `You'll be able to use it again in **${Math.ceil((600000 - (Date.now() - getLastJobRefresh(userID))) / 1000)}s**!`}
                 `;
 
-                const messageEmbed = new Discord.MessageEmbed()
-                .setColor('#00FFFF')
+                messageEmbed
                 .setFooter(embedFooterData)
                 .setAuthor(embedAuthorData)
                 .setTitle('Job list')
                 .setDescription(description);
-                interaction.reply({embeds: [messageEmbed]});
             } else {
-                const messageEmbed = new Discord.MessageEmbed()
-                .setColor('#00FFFF')
+                messageEmbed
                 .setFooter(embedFooterData)
                 .setAuthor(embedAuthorData)
                 .setTitle('Job list')
@@ -545,7 +538,6 @@ client.on('interactionCreate', interaction => {
                     You can refresh this page using the **/refreshjobs** command!
                     ${(Date.now() - getLastJobRefresh(userID) > 600000) ? 'You can use it every 10 minutes!' : `You'll be able to use it again in **${Math.ceil((600000 - (Date.now() - getLastJobRefresh(userID))) / 1000)}s**!`}
                     `);
-                interaction.reply({embeds: [messageEmbed]});
             }
             break;
         }
@@ -554,8 +546,7 @@ client.on('interactionCreate', interaction => {
                 setLastJobRefresh(userID, Date.now());
                 generateAvailableJobs(userID);
                 const jobs = getAvailableJobs(userID);
-                const messageEmbed = new Discord.MessageEmbed()
-                .setColor('#00FFFF')
+                messageEmbed
                 .setFooter(embedFooterData)
                 .setAuthor(embedAuthorData)
                 .setTitle('Job list refresh')
@@ -577,10 +568,8 @@ client.on('interactionCreate', interaction => {
                 }
                 description += '\nYou\'ll be able to use this command again in 10 minutes!';
                 messageEmbed.setDescription(description);
-                interaction.reply({embeds: [messageEmbed]});
             } else {
-                const messageEmbed = new Discord.MessageEmbed()
-                .setColor('#00FFFF')
+                messageEmbed
                 .setFooter(embedFooterData)
                 .setAuthor(embedAuthorData)
                 .setTitle('Job list refresh')
@@ -590,7 +579,6 @@ client.on('interactionCreate', interaction => {
                 You'll be able to use it again in **${Math.ceil((600000 - (Date.now() - getLastJobRefresh(userID))) / 1000)}s**!
                 `
                 );
-                interaction.reply({embeds: [messageEmbed]});
             }
             break;
         }
@@ -600,8 +588,7 @@ client.on('interactionCreate', interaction => {
                 const job = getJob(userID);
 
                 if (Date.now() - getLastWorked(userID) < job.cooldown * 1000) {
-                    const messageEmbed = new Discord.MessageEmbed()
-                    .setColor('#00FFFF')
+                    messageEmbed
                     .setFooter(embedFooterData)
                     .setAuthor(embedAuthorData)
                     .setTitle('Work')
@@ -642,16 +629,13 @@ client.on('interactionCreate', interaction => {
                     setLastWorked(userID, Date.now());
                 }
 
-                const messageEmbed = new Discord.MessageEmbed()
-                .setColor('#00FFFF')
+                messageEmbed
                 .setFooter(embedFooterData)
                 .setAuthor(embedAuthorData)
                 .setTitle('Work')
                 .setDescription(description);
-                interaction.reply({embeds: [messageEmbed]});
             } else {
-                const messageEmbed = new Discord.MessageEmbed()
-                .setColor('#00FFFF')
+                messageEmbed
                 .setFooter(embedFooterData)
                 .setAuthor(embedAuthorData)
                 .setTitle('Work')
@@ -660,7 +644,6 @@ client.on('interactionCreate', interaction => {
                     You don't have a job!
                     Use the command **/jobs** to look for one!
                     `);
-                interaction.reply({embeds: [messageEmbed]});
             }
             break;
         }
@@ -687,22 +670,23 @@ client.on('interactionCreate', interaction => {
                 setJob(userID, availableJobs[jobid]);
                 economyData[userID].availableJobs.splice(jobid, 1);
 
-                const messageEmbed = new Discord.MessageEmbed()
-                .setColor('#00FFFF')
+                messageEmbed
                 .setFooter(embedFooterData)
                 .setAuthor(embedAuthorData)
                 .setTitle('Work')
                 .setDescription(description);
-                interaction.reply({embeds: [messageEmbed]});
             } else {
-                interaction.reply('This job does not exist!');
+                messageEmbed
+                .setFooter(embedFooterData)
+                .setAuthor(embedAuthorData)
+                .setTitle('Work')
+                .setDescription("This job does not exist!");
             }
             break;
         }
         case 'coinflip': {
 
-            const messageEmbed = new Discord.MessageEmbed()
-            .setColor('#00FFFF')
+            messageEmbed
             .setFooter(embedFooterData)
             .setAuthor(embedAuthorData)
             .setTitle('Coinflip')
@@ -776,7 +760,6 @@ client.on('interactionCreate', interaction => {
             `
 
             messageEmbed.setDescription(description);
-            interaction.reply({embeds: [messageEmbed]});
             break;
         }
         case 'baltop': {
@@ -798,21 +781,18 @@ client.on('interactionCreate', interaction => {
                 description += `**${i + 1}.** ${getUsernameAndDiscriminatorFromUserID(arr[i].userid)} - ${arr[i].balance} :coin:\n`;
             }
 
-            const messageEmbed = new Discord.MessageEmbed()
-            .setColor('#00FFFF')
+            messageEmbed
             .setFooter(embedFooterData)
             .setAuthor(embedAuthorData)
             .setTitle('Balance top')
             .setDescription(description);
 
-            interaction.reply({embeds: [messageEmbed]});
             break;
         }
         case 'rob': {
 
             if (Date.now() - getLastRobbed(userID) < 300000) {
-                const messageEmbed = new Discord.MessageEmbed()
-                .setColor('#00FFFF')
+                messageEmbed
                 .setFooter(embedFooterData)
                 .setAuthor(embedAuthorData)
                 .setTitle('Robbery')
@@ -846,8 +826,7 @@ client.on('interactionCreate', interaction => {
                 }
             }
 
-            const messageEmbed = new Discord.MessageEmbed()
-            .setColor('#00FFFF')
+            messageEmbed
             .setFooter(embedFooterData)
             .setAuthor(embedAuthorData)
             .setTitle('Robbery')
@@ -868,7 +847,6 @@ client.on('interactionCreate', interaction => {
     
                     You'll be able to use this command again in **300s**.`
                 );
-                interaction.reply({embeds: [messageEmbed]});
             } else {
                 const escaped = randomInteger(0, 1) === 0;
 
@@ -880,7 +858,6 @@ client.on('interactionCreate', interaction => {
     
                     You'll be able to use this command again in **300s**.`
                     );
-                    interaction.reply({embeds: [messageEmbed]});
                 } else {
                     messageEmbed.setDescription(
                     `
@@ -889,7 +866,6 @@ client.on('interactionCreate', interaction => {
                     ${hasJob(userID) ? 'Also you got fired from your job.\n' : ''}
                     How depressing!
                     `);
-                    interaction.reply({embeds: [messageEmbed]});
                     setArrestedUntil(userID, Date.now() + 600000);
                     setJob(userID, null);
                 }
@@ -901,8 +877,7 @@ client.on('interactionCreate', interaction => {
             const user = interaction.options.getUser('user');
             const maxPrice = interaction.options.getInteger('maxprice', false);
 
-            const messageEmbed = new Discord.MessageEmbed()
-            .setColor('#00FFFF')
+            messageEmbed
             .setFooter(embedFooterData)
             .setAuthor(embedAuthorData)
             .setTitle('Lawyer')
@@ -1002,8 +977,7 @@ client.on('interactionCreate', interaction => {
             break;
         }
         case 'cooldowns': {
-            const messageEmbed = new Discord.MessageEmbed()
-            .setColor('#00FFFF')
+            messageEmbed
             .setFooter(embedFooterData)
             .setAuthor(embedAuthorData)
             .setTitle('Cooldowns')
@@ -1041,32 +1015,28 @@ client.on('interactionCreate', interaction => {
             }
 
             messageEmbed.setDescription(description);
-            interaction.reply({embeds: [messageEmbed]});
             break;
         }
         case 'shop': {
-            const messageEmbed = new Discord.MessageEmbed()
-            .setColor('#00FFFF')
+            messageEmbed
             .setTitle('Shop')
             const time = getInGameTime();
             if (time.hour < 6 || time.hour >= 22) {
                 messageEmbed.setDescription(`The shop is closed!\nIt's open between 6:00 AM and 10:00 PM.\nIt's currently ${time.as12hString()}.`);
-                interaction.reply({embeds: [messageEmbed]});
                 break;
             }
-
-            interaction.reply({embeds: [messageEmbed]});
             break;
         }
         case 'time': {
-            const messageEmbed = new Discord.MessageEmbed()
-            .setColor('#00FFFF')
+            messageEmbed
             .setTitle('Time')
             .setDescription(`The time is: ${getInGameTime().as12hString()}`)
 
-            interaction.reply({embeds: [messageEmbed]});
+            break;
         }
+        default: return;
     }
+    interaction.reply({embeds: [messageEmbed]});
 });
 
 slashCommandsList.push(
