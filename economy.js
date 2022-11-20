@@ -5,6 +5,13 @@ const fs = require('fs');
 
 const embedFooterData = {text: 'Economy bot by Khajiitos#5835', iconURL: 'https://cdn.discordapp.com/avatars/408330424562089984/9a944c01c8b129b05d74b7e4ec72c901.webp'};
 
+if (config.fixEmbedWhitespace) {
+    const oldSetDescription = Discord.MessageEmbed.prototype.setDescription;
+    Discord.MessageEmbed.prototype.setDescription = function(description) {
+        return oldSetDescription.call(this, description.replace(/\n +/gm, '\n'));
+    }
+}
+
 const defaultUserEconomyData = {
     balance: 0,
     job: null,

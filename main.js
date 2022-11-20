@@ -10,7 +10,8 @@ const defaultConfig = {
     mobile: false,
     slashCommandTestingServer: null,
     customStatus: null,
-    owners: []
+    owners: [],
+    fixEmbedWhitespace: true
 };
 
 if (!fs.existsSync('config.json')) {
