@@ -468,6 +468,31 @@ client.on('interactionCreate', interaction => {
     }
 
     switch(interaction.commandName) {
+        case 'help': {
+            messageEmbed.setTitle('Help');
+            messageEmbed.setDescription(`
+            **
+            Hi :)
+            I'm an economy bot.
+            Get a job, work, take risks; do whatever it takes to become as rich as you can!**
+
+            Commands:
+            ***/balance, /money** - Views your balance*
+            ***/baltop** - Views the richest players*
+            ***/coinflip** - Gambles up to half of your money*
+            ***/cooldowns** - Views your cooldowns*
+            ***/job** - Views your current job*
+            ***/jobapply** - Applies to a job*
+            ***/jobs** - Views jobs available to you*
+            ***/work** - Works if you have a job*
+            ***/refreshjobs** - Refreshes jobs available to you*
+            ***/lawyer** - Buys a lawyer to release you or another person from arrest*
+            ***/rob** - Robs a stranger*
+            ***/shop** - Opens the shop*
+            ***/time** - Views the current in-game time*
+            `)
+            break;
+        }
         case 'balance':
         case 'money': {
             messageEmbed
@@ -1152,4 +1177,10 @@ slashCommandsList.push(
     new Builders.SlashCommandBuilder()
     .setName('time')
     .setDescription('Views the current in-game time')
+);
+
+slashCommandsList.push(
+    new Builders.SlashCommandBuilder()
+    .setName('help')
+    .setDescription('Views the list of commands')
 );
